@@ -1,0 +1,10 @@
+doctype html
+html
+  head
+    title rack-server-pages examples
+  body
+    h1 rack-server-pages examples
+    ul
+      - for file in Dir["#{File.dirname(__FILE__)}/*"]
+        li
+          a href=file[%r!/examples/(\w+\.\w+)(?:\.\w+)?$!, 1] =$1
