@@ -1,1 +1,1 @@
-<%= rubyinfo() %>
+<%= phpinfo() %>

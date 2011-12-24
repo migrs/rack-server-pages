@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-require 'ruby-debug'
+require 'rack'
+require 'tilt'
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
@@ -88,6 +89,23 @@ module Rack
 
       def redirect(target, status=302)
         response.redirect(target, status)
+        halt
+      end
+
+      def halt(*args)
+        case args[0]
+        when String
+          response.body = [args[0]]
+        when Fixnum
+          response.status = args[0]
+          case args[1]
+          when Hash
+            response.headers.merge! args[1]
+            response.body = [args[2]]
+          else
+            response.body = [args[1]]
+          end
+        end
         throw :halt
       end
     end
@@ -171,5 +189,6 @@ module Rack::ServerPages::Binding::Extra
     </html>
     RUBYINFO
   end
+  alias phpinfo rubyinfo # :)
 end
 Rack::ServerPages::Binding.send(:include, Rack::ServerPages::Binding::Extra)
