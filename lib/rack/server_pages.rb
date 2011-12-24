@@ -9,20 +9,21 @@ require 'rack/mime'
   - mime-type
   - sample.php :)
   - path_regex
-
-  todo:
   - rack request
   - session
   - params
+  - scope
+
+  todo:
 
   sinatra extension:
   - layout template
   - include template
-  - scope
 =end
 
 module Rack
   class ServerPages
+    VERSION = '0.0.1'
 
     def initialize(app, options = {})
       @app = app
@@ -33,30 +34,27 @@ module Rack
     end
 
     def call(env)
-      req = {}.tap do |h|
-        if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?(\w+)?(\.\w+)?$!)
-          h.merge! :dir => m[1], :file => m[2], :ext => m[3]
-          h[:file] ||= 'index'
-        end
+      files, req_ext = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?(\w+)?(\.\w+)?$!)
+        [Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2] || 'index'}.*"}.join("\0")], m[3]]
       end
 
-      template_files = Dir[@roots.map{|root|"#{root}/#{req[:dir]}#{req[:file]}.*"}.join("\0")] unless req.empty?
+      if files and files.size > 0
+        tpl_file = files[0]
+        res_ext, tpl_ext = tpl_file.match(/(\.\w+)?(\.\w+)$/).captures
+        res_ext ||= req_ext
 
-      if template_files and template_files.size > 0
-        template_file = template_files[0]
-        response_type, template_ext = template_file.match(/(\.\w+)?(\.\w+)$/).captures
-        response_type = req[:ext] if response_type.nil?
-
-        if template = Tilt[template_ext]
+        if tpl = Tilt[tpl_ext]
           scope = Binding.new(env)
           scope.response.tap do |res|
-            res.write template.new(template_file).render(scope)
-            res['Last-Modified'] ||= ::File.mtime(template_file).httpdate
-            res['Content-Type']  ||= response_type ? Mime.mime_type(response_type, template.default_mime_type) : template.default_mime_type
-            res['Cache-Control'] ||= @cache_control if @cache_control
+            catch(:halt) do
+              res.write tpl.new(tpl_file).render(scope)
+              res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
+              res['Content-Type']  ||= Mime.mime_type(res_ext, tpl.default_mime_type)
+              res['Cache-Control'] ||= @cache_control if @cache_control
+            end
           end.finish
         else
-          StaticFile.new(template_file, @cache_control).call(env)
+          StaticFile.new(tpl_file, @cache_control).call(env)
         end
       else
         @app.call(env)
@@ -80,13 +78,98 @@ module Rack
       attr_reader :request
       attr_reader :response
 
-      def_delegators :request, :env, :params, :session, :logger, :headers
+      def_delegators :request, :env, :params, :session, :cookies, :logger
+      def_delegators :response, :headers, :set_cookies, :delete_cookie
 
       def initialize(env)
         @request  = Rack::Request.new(env)
         @response = Rack::Response.new
       end
+
+      def redirect(target, status=302)
+        response.redirect(target, status)
+        throw :halt
+      end
     end
   end
 end
 
+module Rack::ServerPages::Binding::Extra
+  def rubyinfo
+    ERB.new(<<-RUBYINFO).result(binding)
+    <html><head>
+    <style type="text/css"><!--
+    body {background-color: #ffffff; color: #000000;}
+    body, td, th, h1, h2 {font-family: sans-serif;}
+    pre {margin: 0px; font-family: monospace;}
+    a:link {color: #000099; text-decoration: none; background-color: #ffffff;}
+    a:hover {text-decoration: underline;}
+    table {border-collapse: collapse;}
+    .center {text-align: center;}
+    .center table { margin-left: auto; margin-right: auto; text-align: left;}
+    .center th { text-align: center !important; }
+    td, th { border: 1px solid #000000; font-size: 75%; vertical-align: baseline;}
+    h1 {font-size: 150%;}
+    h2 {font-size: 125%;}
+    .p {text-align: left;}
+    .e {background-color: #ccccff; font-weight: bold; color: #000000;}
+    .h {background-color: #9999cc; font-weight: bold; color: #000000;}
+    .v {background-color: #cccccc; color: #000000;}
+    i {color: #666666; background-color: #cccccc;}
+    img {float: right; border: 0px;}
+    hr {width: 600px; background-color: #cccccc; border: 0px; height: 1px; color: #000000;}
+    //--></style>
+    <title>rubyinfo()</title>
+    </head>
+    <body>
+      <div class="center">
+        <table border="0" cellpadding="3" width="600">
+          <tr class="h">
+            <td>
+            <h1 class="p">Rack Server Pages Version <%= Rack::ServerPages::VERSION%></h1>
+            </td>
+          </tr>
+        </table>
+        <br />
+        <h2>Rack Environment</h2>
+        <table border="0" cellpadding="3" width="600">
+          <tr class="h"><th>Variable</th><th>Value</th></tr>
+          <% for key, value in env do %>
+            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
+          <% end %>
+        </table>
+        <h2>Ruby</h2>
+        <table border="0" cellpadding="3" width="600">
+          <tr><td class="e">RUBY_VERSION</td><td class="v"><%= RUBY_VERSION %></td></tr>
+          <tr><td class="e">RUBY_PATCHLEVEL</td><td class="v"><%= RUBY_PATCHLEVEL %></td></tr>
+          <tr><td class="e">RUBY_RELEASE_DATE</td><td class="v"><%= RUBY_RELEASE_DATE %></td></tr>
+          <tr><td class="e">RUBY_PLATFORM</td><td class="v"><%= RUBY_PLATFORM %></td></tr>
+        </table>
+        <h2>Environment</h2>
+        <table border="0" cellpadding="3" width="600">
+          <tr class="h"><th>Variable</th><th>Value</th></tr>
+          <% for key, value in ENV do %>
+            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
+          <% end %>
+        </table>
+        <h2>Tilt</h2>
+        <table border="0" cellpadding="3" width="600">
+          <% for key, value in Tilt.mappings do %>
+            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
+          <% end %>
+        </table>
+        <h2>License</h2>
+        <table border="0" cellpadding="3" width="600">
+        <tr class="v"><td>
+        <p>
+        MIT License
+        </p>
+        </td></tr>
+        </table><br />
+      </div>
+    </body>
+    </html>
+    RUBYINFO
+  end
+end
+Rack::ServerPages::Binding.send(:include, Rack::ServerPages::Binding::Extra)
