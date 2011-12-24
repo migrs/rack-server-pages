@@ -12,4 +12,4 @@ Tilt::ErubisTemplate.default_mime_type = 'text/html'
 
 use Rack::ServerPages
 
-run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['File Not Found']]}
+run lambda {|e| [404, {'Content-Type' => 'text/plain'}, ['Not Found']]}

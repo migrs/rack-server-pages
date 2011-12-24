@@ -4,6 +4,7 @@ require 'tilt'
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
+require 'ruby-debug'
 =begin
   features:
   - render with tilt
@@ -16,6 +17,7 @@ require 'rack/mime'
   - scope
 
   todo:
+  - Rack::URLMap
 
   sinatra extension:
   - layout template
@@ -113,6 +115,7 @@ module Rack
 end
 
 module Rack::ServerPages::Binding::Extra
+  require 'erb'
   def rubyinfo
     ERB.new(<<-RUBYINFO).result(binding)
     <html><head>
