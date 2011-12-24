@@ -4,7 +4,29 @@ gem 'rake'
 gem 'rack-contrib'
 gem 'tilt'
 
-gem 'rdiscount'
+gem 'RedCloth', :require => false
+gem 'bluecloth', :require => false
+gem 'builder', :require => false
+gem 'coffee-script', :require => false
+gem 'contest', :require => false
+gem 'creole', :require => false
+gem 'erubis', :require => false
+gem 'haml', :require => false
+gem 'kramdown', :require => false
+gem 'less', :require => false
+gem 'liquid', :require => false
+gem 'markaby', :require => false
+gem 'maruku', :require => false
+gem 'nokogiri', :require => false
+gem 'radius', :require => false
+gem 'rdiscount', :require => false
+gem 'rdoc', :require => false
+gem 'redcarpet', :require => false
+gem 'sass', :require => false
+gem 'wikicloth', :require => false
+gem 'yajl-ruby', :require => false
+
+gem 'slim', :require => false
 
 group :development do
   gem 'guard'
@@ -21,7 +43,7 @@ group :test do
   gem 'rspec'
 end
 
-group :development, :test do
+#group :development, :test do
   gem 'tapp'
   gem 'ruby-debug19', :require => 'ruby-debug'
-end
+#end
