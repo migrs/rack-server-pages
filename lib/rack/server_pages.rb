@@ -16,12 +16,13 @@ require 'ruby-debug'
   - session
   - params
   - scope
+  - partial template
+  - layout template
 
   todo:
   - Rack::URLMap
   - Form Helper
-  - layout template
-  - include template
+  - static generator
 =end
 
 module Rack
@@ -37,20 +38,25 @@ module Rack
     end
 
     def call(env)
+      _call(env)
+    end
+
+  private
+    def _call(env)
       files = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
         Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
       end
 
-      if files and files.size > 0
-        #logger.debug "Find templates: #{files}"
+      response = if files and files.size > 0
         tpl_file = files[0]
-        res_ext, tpl_ext = tpl_file.match(/(\.\w+)?(\.\w+)$/).captures
 
-        if tpl = Tilt[tpl_ext]
+        if tpl = Tilt[tpl_file]
           scope = Binding.new(env)
           scope.response.tap do |res|
             catch(:halt) do
-              res.write tpl.new(tpl_file).render(scope)
+              res_ext = tpl_file[/(\.\w+)?(?:\.\w+)$/, 1]
+              output = _render_layout(tpl.new(tpl_file).render(scope), scope)
+              res.write output
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
               res['Content-Type']  ||= Mime.mime_type(res_ext, tpl.default_mime_type)
               res['Cache-Control'] ||= @cache_control if @cache_control
@@ -61,6 +67,15 @@ module Rack
         end
       else
         @app.call(env)
+      end
+    end
+
+    def _render_layout(content, scope)
+      if file = scope.layout and tpl = Tilt[file]
+        scope.layout(false)
+        _render_layout(tpl.new(file).render(scope) { content }, scope)
+      else
+        content
       end
     end
 
@@ -100,6 +115,11 @@ module Rack
         else
           IO.read(file)
         end
+      end
+
+      def layout(file = nil)
+        @layout = file unless file.nil?
+        @layout
       end
 
       def halt(*args)
@@ -200,6 +220,6 @@ module Rack::ServerPages::Binding::Extra
     </html>
     RUBYINFO
   end
-  alias phpinfo rubyinfo # :)
+  alias phpinfo rubyinfo # just a joke :)
 end
 Rack::ServerPages::Binding.send(:include, Rack::ServerPages::Binding::Extra)

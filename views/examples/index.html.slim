@@ -1,13 +1,9 @@
-doctype html
-html
-  head
-    title rack-server-pages examples
-  body
-    h1 rack-server-pages examples
-    h2 partial test
-    == partial 'views/examples/_time.html.slim'
-    h2 tilt templates
-    ul
-      - for file in Dir["#{File.dirname(__FILE__)}/*"]
-        li
-          a href=file[%r!/examples/(\w+\.\w+)(?:\.\w+)?$!, 1] =$1
+ruby:
+  layout 'views/examples/_layout.html.slim'
+h2 partial test
+== partial 'views/examples/_time.html.slim'
+h2 tilt templates
+ul
+  - for file in Dir["#{File.dirname(__FILE__)}/*"]
+    li
+      a href=file[%r!/examples/(\w+\.\w+)(?:\.\w+)?$!, 1] =$1
