@@ -4,6 +4,7 @@ require 'tilt'
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
+require 'rack/logger'
 require 'ruby-debug'
 =begin
   features:
@@ -18,8 +19,7 @@ require 'ruby-debug'
 
   todo:
   - Rack::URLMap
-
-  sinatra extension:
+  - Form Helper
   - layout template
   - include template
 =end
@@ -37,14 +37,14 @@ module Rack
     end
 
     def call(env)
-      files, req_ext = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?(\w+)?(\.\w+)?$!)
-        [Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2] || 'index'}.*"}.join("\0")], m[3]]
+      files = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+        Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
       end
 
       if files and files.size > 0
+        #logger.debug "Find templates: #{files}"
         tpl_file = files[0]
         res_ext, tpl_ext = tpl_file.match(/(\.\w+)?(\.\w+)$/).captures
-        res_ext ||= req_ext
 
         if tpl = Tilt[tpl_ext]
           scope = Binding.new(env)
@@ -92,6 +92,14 @@ module Rack
       def redirect(target, status=302)
         response.redirect(target, status)
         halt
+      end
+
+      def partial(file)
+        if tpl = Tilt[file]
+          tpl.new(file).render(self)
+        else
+          IO.read(file)
+        end
       end
 
       def halt(*args)
