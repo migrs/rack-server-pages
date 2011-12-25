@@ -6,24 +6,6 @@ require 'rack/utils'
 require 'rack/mime'
 require 'rack/logger'
 require 'ruby-debug'
-=begin
-  features:
-  - render with tilt
-  - mime-type
-  - sample.php :)
-  - path_regex
-  - rack request
-  - session
-  - params
-  - scope
-  - partial template
-  - layout template
-
-  todo:
-  - Rack::URLMap
-  - Form Helper
-  - static generator
-=end
 
 module Rack
   class ServerPages

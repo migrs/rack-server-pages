@@ -9,6 +9,7 @@ RSpec.configure do |conf|
   conf.include Rack::Test::Methods
 end
 
+require 'slim'
 Tilt.register Tilt::ErubisTemplate, 'php'
 Tilt::ErubisTemplate.default_mime_type = 'text/html'
 
@@ -28,6 +29,7 @@ def should_be_ok(path)
     before { get path }
     subject { last_response }
     it { should be_ok }
+    its(:content_type) { should eq 'text/html' }
   end
 end
 
@@ -36,5 +38,6 @@ def should_be_not_found(path)
     before { get path }
     subject { last_response }
     it { should be_not_found }
+    #its(:content_type) { should eq 'text/plain' }
   end
 end
