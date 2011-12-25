@@ -1,7 +1,9 @@
 ruby:
-  layout 'views/examples/_layout.html.slim'
+  layout 'views/examples/_layout.html'
+  src = params['src'][/(\w+\.)?(\w+)$/, 0]
 h2 source
-code = file = Dir["views/examples/#{params['src']}.*"].first
+code = file = Dir["views/examples/#{src}.*"].first
 pre style="background-color:#122831;color:#B3B3B3;padding:1em;" =IO.read(file)
-a href=(url = code= "/examples/#{params['src']}") = url
+a href=(url = "/examples/#{src}") = url
 iframe src=url width="100%"
+

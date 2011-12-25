@@ -1,8 +1,6 @@
 ruby:
-  layout 'views/examples/_layout.html.slim'
-h2 partial test
-== partial 'views/examples/_time.html.slim'
-h2 tilt templates
+  layout 'views/examples/_layout.html'
+h2 Tilt Templates
 ul
   - for file in Dir["#{File.dirname(__FILE__)}/*"]
     li

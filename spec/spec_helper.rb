@@ -1,17 +1,17 @@
+# -*- encoding: utf-8 -*-
 require 'rack/test'
 require 'ruby-debug'
 require 'tapp'
 require 'simplecov'
 SimpleCov.start
-require File.dirname(__FILE__) + '/../lib/rack/server_pages'
 
 RSpec.configure do |conf|
   conf.include Rack::Test::Methods
 end
 
 require 'slim'
-Tilt.register Tilt::ErubisTemplate, 'php'
-Tilt::ErubisTemplate.default_mime_type = 'text/html'
+Tilt.register Tilt::ERBTemplate, 'php'
+Tilt::ERBTemplate.default_mime_type = 'text/html'
 
 def app
   @app ||=Rack::Builder.app do

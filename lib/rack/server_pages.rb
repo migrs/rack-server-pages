@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 require 'rack'
 require 'tilt'
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
 require 'rack/logger'
-require 'ruby-debug'
+require 'forwardable'
 
 module Rack
   class ServerPages
@@ -53,7 +52,7 @@ module Rack
     end
 
     def _render_layout(content, scope)
-      if file = scope.layout and tpl = Tilt[file]
+      if layout = scope.layout and file = Dir["#{layout}{.*,}"].first and tpl = Tilt[file]
         scope.layout(false)
         _render_layout(tpl.new(file).render(scope) { content }, scope)
       else
@@ -92,8 +91,8 @@ module Rack
       end
 
       def partial(file)
-        if tpl = Tilt[file]
-          tpl.new(file).render(self)
+        if tpl_file = Dir["#{file}{.*,}"].first and tpl = Tilt[tpl_file]
+          tpl.new(tpl_file).render(self)
         else
           IO.read(file)
         end

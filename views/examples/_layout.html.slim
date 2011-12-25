@@ -4,4 +4,7 @@ html
     title rack-server-pages examples
   body
     h1 rack-server-pages examples
+    == partial 'views/examples/_time.html'
     == yield
+    - unless request.path =~ %r!^/examples/(index(\.html)?)?$!
+      a href="/examples/" List examples
