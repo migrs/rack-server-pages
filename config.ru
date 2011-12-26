@@ -3,6 +3,7 @@ require 'rack-server-pages'
 require 'slim'
 
 use Rack::ServerPages
+Rack::ServerPages::Template::ERBTemplate::EXTENSIONS << 'php'
 
 Tilt.prefer Tilt::RDiscountTemplate
 Tilt.register Tilt::ERBTemplate, 'php'

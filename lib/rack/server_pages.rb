@@ -1,10 +1,10 @@
 require 'rack'
-require 'tilt'
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
 require 'rack/logger'
 require 'forwardable'
+require 'erb'
 
 require 'ruby-debug'
 require 'tapp'
@@ -33,7 +33,7 @@ module Rack
       response = if files and files.size > 0
         tpl_file = files[0]
 
-        if tpl = Tilt[tpl_file]
+        if tpl = Template[tpl_file]
           scope = Binding.new(env)
           scope.response.tap do |res|
             catch(:halt) do
@@ -53,8 +53,8 @@ module Rack
     end
 
     def _render(file, scope, &block)
-      content = Tilt[file].new(file).render(scope, &block)
-      if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first# and tpl = Tilt[file]
+      content = Template[file].render(scope, &block)
+      if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
         scope.layout(false)
         _render(layout_file, scope) { content }
       else
@@ -66,12 +66,40 @@ module Rack
       if defined? Tilt
         Tilt[file]
       else
-        file =~ /\.(erb|rhtml)$/
       end
     end
 
     class Template
-      def render(&block)
+      def self.[] file
+        klass = defined?(Tilt) ? TiltTemplate : ERBTemplate
+        klass.new(file).find_template
+      end
+
+      def initialize(file)
+        @file = file
+      end
+
+      class TiltTemplate < Template
+        def find_template
+          (@engine ||= Tilt[@file]) ? self : nil
+        end
+
+        def render(scope, &block)
+          @engine.new(@file).render(scope, &block)
+        end
+      end
+
+      class ERBTemplate < Template
+        EXTENSIONS = %w(erb rhtml)
+
+        def find_template
+          (@file =~ /\.(#{EXTENSIONS.join('|')})$/) and ::File.exist?(@file) ? self : nil
+        end
+
+        def render(scope, &block)
+          # TODO: support block
+          ERB.new(IO.read(@file)).result(scope._binding)
+        end
       end
     end
 
@@ -133,6 +161,10 @@ module Rack
           end
         end
         throw :halt
+      end
+
+      def _binding
+        binding
       end
     end
   end
