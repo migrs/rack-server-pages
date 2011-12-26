@@ -1,20 +1,38 @@
 Rack Server Pages
 =================
 
-Rack server pages is a rack middleware that serve a view templates directly with tilt.
-There are no controllers and no models, just only views like a asp, jsp and php!
+Rack middleware for serving dynamic pages with Tilt template interface.
+There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Features
-- render with tilt
-- mime-type
-- sample.php :)
-- path regex
-- rack request
-- session
-- params
-- scope
-- partial template
-- layout template
+- Render with Tilt
+- Include a partial template
+- Layout template
+- Serve static files
+
+## Install
+``` sh
+    gem install rack-server-pages
+```
+
+## Basic usage
+```sh
+config.ru
+public/index.erb
+    ```
+
+`config.ru`
+```ruby
+require 'rack-server-pages'
+use Rack::ServerPages
+run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['File Not Found']]}
+```
+
+`public/index.erb`
+```eruby
+<h1>Hello rack!</h1>
+<p><%= Time.now %></p>
+```
 
 ## ToDo
 - Gem file

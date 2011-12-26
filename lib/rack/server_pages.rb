@@ -6,13 +6,15 @@ require 'rack/mime'
 require 'rack/logger'
 require 'forwardable'
 
+require 'ruby-debug'
+require 'tapp'
+
 module Rack
   class ServerPages
     VERSION = '0.0.1'
 
     def initialize(app, options = {})
       @app = app
-      @path = options[:path] || '/'
       @roots = options[:root].kind_of?(Enumerable) ? options[:root] :
         (options[:root].nil? or options[:root].empty?) ? %w(views public) : [options[:root].to_s]
       @cache_control = options[:cache_control]
@@ -24,7 +26,7 @@ module Rack
 
   private
     def _call(env)
-      files = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+      files = if m = env['PATH_INFO'].match(%r!^/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
         Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
       end
 
@@ -36,8 +38,7 @@ module Rack
           scope.response.tap do |res|
             catch(:halt) do
               res_ext = tpl_file[/(\.\w+)?(?:\.\w+)$/, 1]
-              output = _render_layout(tpl.new(tpl_file).render(scope), scope)
-              res.write output
+              res.write _render(tpl_file, scope)
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
               res['Content-Type']  ||= Mime.mime_type(res_ext, tpl.default_mime_type)
               res['Cache-Control'] ||= @cache_control if @cache_control
@@ -51,12 +52,26 @@ module Rack
       end
     end
 
-    def _render_layout(content, scope)
-      if layout = scope.layout and file = Dir["#{layout}{.*,}"].first and tpl = Tilt[file]
+    def _render(file, scope, &block)
+      content = Tilt[file].new(file).render(scope, &block)
+      if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first# and tpl = Tilt[file]
         scope.layout(false)
-        _render_layout(tpl.new(file).render(scope) { content }, scope)
+        _render(layout_file, scope) { content }
       else
         content
+      end
+    end
+
+    def _find_template(glob) # files?
+      if defined? Tilt
+        Tilt[file]
+      else
+        file =~ /\.(erb|rhtml)$/
+      end
+    end
+
+    class Template
+      def render(&block)
       end
     end
 

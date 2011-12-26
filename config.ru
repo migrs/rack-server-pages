@@ -1,3 +1,5 @@
+require 'bundler/setup'
+require 'rack-server-pages'
 require 'slim'
 
 use Rack::ServerPages

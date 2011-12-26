@@ -29,7 +29,7 @@ GEM
     rack-test (0.6.1)
       rack (>= 1.0)
     rbx-require-relative (0.0.5)
-    rdiscount (1.6.8)
+    redcarpet (2.0.1)
     rspec (2.7.0)
       rspec-core (~> 2.7.0)
       rspec-expectations (~> 2.7.0)
@@ -75,7 +75,7 @@ DEPENDENCIES
   guard-rspec
   rack-server-pages!
   rack-test
-  rdiscount
+  redcarpet
   rspec
   ruby-debug
   ruby-debug19
