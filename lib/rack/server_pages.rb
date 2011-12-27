@@ -5,12 +5,16 @@ require 'rack/mime'
 require 'rack/logger'
 require 'forwardable'
 
+require 'ruby-debug'
+require 'tapp'
+
 module Rack
   class ServerPages
     VERSION = '0.0.1'
 
     def initialize(app, options = {})
       @app = app
+      @path = options[:path] || '/'
       @roots = options[:root].kind_of?(Enumerable) ? options[:root] :
         (options[:root].nil? or options[:root].empty?) ? %w(views public) : [options[:root].to_s]
       @cache_control = options[:cache_control]
@@ -22,7 +26,7 @@ module Rack
 
   private
     def _call(env)
-      files = if m = env['PATH_INFO'].match(%r!^/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+      files = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
         Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
       end
 
@@ -170,6 +174,10 @@ module Rack
           end
         end
         throw :halt
+      end
+
+      def url(path = "")
+        env['SCRIPT_NAME'] + (path.to_s[0,1]!='/'?'/':'') + path.to_s
       end
 
       def _binding

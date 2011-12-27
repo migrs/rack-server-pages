@@ -11,21 +11,21 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - Serve static files
 
 ## Install
-``` sh
-    gem install rack-server-pages
+```sh
+gem install rack-server-pages
 ```
 
 ## Basic usage
-```sh
+```
 config.ru
 public/index.erb
-    ```
+```
 
 `config.ru`
 ```ruby
 require 'rack-server-pages'
 use Rack::ServerPages
-run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['File Not Found']]}
+run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['Not Found']]}
 ```
 
 `public/index.erb`
@@ -34,9 +34,13 @@ run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['File Not Found']]}
 <p><%= Time.now %></p>
 ```
 
+use Rack::ServerPages
+run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['Not Found']]}
+
+## Done
+- Rack::URLMap
 ## ToDo
 - Gem file
 - stacktrace
-- Rack::URLMap
 - Form Helper
 - static generator
