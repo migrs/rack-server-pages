@@ -42,7 +42,7 @@ end
 #gem 'radius'
 #gem 'rdiscount'
 #gem 'rdoc'
-gem 'redcarpet'
+#gem 'redcarpet'
 #gem 'sass'
 #gem 'wikicloth'
 #gem 'yajl-ruby'

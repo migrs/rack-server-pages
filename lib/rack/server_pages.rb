@@ -38,7 +38,7 @@ module Rack
           scope.response.tap do |res|
             catch(:halt) do
               res_ext = tpl_file[/(\.\w+)?(?:\.\w+)$/, 1]
-              res.write _render(tpl_file, scope)
+              res.write _render(tpl_file, scope) # TODO
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
               res['Content-Type']  ||= Mime.mime_type(res_ext, tpl.default_mime_type)
               res['Cache-Control'] ||= @cache_control if @cache_control
@@ -62,17 +62,17 @@ module Rack
       end
     end
 
-    def _find_template(glob) # files?
-      if defined? Tilt
-        Tilt[file]
-      else
-      end
-    end
-
     class Template
       def self.[] file
-        klass = defined?(Tilt) ? TiltTemplate : ERBTemplate
-        klass.new(file).find_template
+        engine.new(file).find_template
+      end
+
+      def self.engine
+        defined?(Tilt) ? TiltTemplate : ERBTemplate
+      end
+
+      def self.tilt?
+        engine == TiltTemplate
       end
 
       def initialize(file)
@@ -134,8 +134,8 @@ module Rack
       end
 
       def partial(file)
-        if tpl_file = Dir["#{file}{.*,}"].first and tpl = Tilt[tpl_file]
-          tpl.new(tpl_file).render(self)
+        if tpl_file = Dir["#{file}{.*,}"].first and tpl = Template[tpl_file]
+          Template[tpl_file].render(self)
         else
           IO.read(file)
         end
@@ -229,11 +229,22 @@ module Rack::ServerPages::Binding::Extra
             <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
           <% end %>
         </table>
+        <% if defined?(Tilt) %>
         <h2>Tilt</h2>
         <table border="0" cellpadding="3" width="600">
           <% for key, value in Tilt.mappings do %>
             <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
           <% end %>
+        </table>
+        <% else %>
+        <h2>ERB Template</h2>
+        <table border="0" cellpadding="3" width="600">
+          <tr><td class="e">extensions</td><td class="v"><%=Rack::ServerPages::Template::ERBTemplate::EXTENSIONS.join(', ')%></td></tr>
+        </table>
+        <% end %>
+        <h2>Binding</h2>
+        <table border="0" cellpadding="3" width="600">
+          <tr><td class="e">methods</td><td class="v"><%= (methods - Object.methods).join(', ') %></td></tr>
         </table>
         <h2>License</h2>
         <table border="0" cellpadding="3" width="600">

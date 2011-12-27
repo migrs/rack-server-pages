@@ -1,7 +1,0 @@
-ruby:
-  layout 'views/examples/_layout.html'
-h2 Tilt Templates
-ul
-  - for file in Dir["#{File.dirname(__FILE__)}/*"]
-    li
-      a href=file[%r!/examples/(\w+\.\w+)(?:\.\w+)?$!, 1] =$1
