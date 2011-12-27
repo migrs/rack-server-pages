@@ -3,6 +3,7 @@ source :rubygems
 gemspec
 
 group :development do
+  gem 'rake'
   gem 'guard'
   gem 'guard-bundler'
   gem 'guard-rspec'

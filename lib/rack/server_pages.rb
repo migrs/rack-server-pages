@@ -33,10 +33,9 @@ module Rack
           scope = Binding.new(env)
           scope.response.tap do |res|
             catch(:halt) do
-              res_ext = tpl_file[/(\.\w+)?(?:\.\w+)$/, 1]
               res.write template.render_with_layout(scope)
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
-              res['Content-Type']  ||= Mime.mime_type(res_ext, template.default_mime_type)
+              res['Content-Type']  ||= template.mime_type
               res['Cache-Control'] ||= @cache_control if @cache_control
             end
           end.finish
@@ -65,6 +64,11 @@ module Rack
         @file = file
       end
 
+      def mime_type
+        ext = @file[/(\.\w+)?(?:\.\w+)$/, 1]
+        Mime.mime_type(ext, default_mime_type)
+      end
+
       def render_with_layout(scope, &block)
         content = render(scope, &block)
         if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
@@ -77,15 +81,15 @@ module Rack
 
       class TiltTemplate < Template
         def find_template
-          (@engine ||= Tilt[@file]) ? self : nil
+          (@tilt ||= Tilt[@file]) ? self : nil
         end
 
         def render(scope, &block)
-          @engine.new(@file).render(scope, &block)
+          @tilt.new(@file).render(scope, &block)
         end
 
         def default_mime_type
-          @engine.default_mime_type
+          @tilt.default_mime_type
         end
       end
 
