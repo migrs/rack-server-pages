@@ -4,16 +4,7 @@ require 'rack/utils'
 require 'rack/mime'
 require 'rack/logger'
 require 'forwardable'
-require 'erb'
 
-require 'ruby-debug'
-require 'tapp'
-
-#class ERB
-#  def result(b=TOPLEVEL_BINDING)
-#    eval(@src, b, (@filename || '(erb)'), 0)
-#  end
-#end
 module Rack
   class ServerPages
     VERSION = '0.0.1'
@@ -35,17 +26,17 @@ module Rack
         Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
       end
 
-      response = if files and files.size > 0
+      response = if files and !files.empty?
         tpl_file = files[0]
 
-        if tpl = Template[tpl_file]
+        if template = Template[tpl_file]
           scope = Binding.new(env)
           scope.response.tap do |res|
             catch(:halt) do
               res_ext = tpl_file[/(\.\w+)?(?:\.\w+)$/, 1]
-              res.write _render(tpl_file, scope) # TODO
+              res.write template.render_with_layout(scope)
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
-              res['Content-Type']  ||= Mime.mime_type(res_ext, tpl.default_mime_type)
+              res['Content-Type']  ||= Mime.mime_type(res_ext, template.default_mime_type)
               res['Cache-Control'] ||= @cache_control if @cache_control
             end
           end.finish
@@ -54,16 +45,6 @@ module Rack
         end
       else
         @app.call(env)
-      end
-    end
-
-    def _render(file, scope, &block)
-      content = Template[file].render(scope, &block)
-      if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
-        scope.layout(false)
-        _render(layout_file, scope) { content }
-      else
-        content
       end
     end
 
@@ -84,6 +65,16 @@ module Rack
         @file = file
       end
 
+      def render_with_layout(scope, &block)
+        content = render(scope, &block)
+        if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
+          scope.layout(false)
+          Template[layout_file].render(scope) { content }
+        else
+          content
+        end
+      end
+
       class TiltTemplate < Template
         def find_template
           (@engine ||= Tilt[@file]) ? self : nil
@@ -92,9 +83,15 @@ module Rack
         def render(scope, &block)
           @engine.new(@file).render(scope, &block)
         end
+
+        def default_mime_type
+          @engine.default_mime_type
+        end
       end
 
       class ERBTemplate < Template
+        require 'erb'
+
         EXTENSIONS = %w(erb rhtml)
 
         def find_template
@@ -103,6 +100,10 @@ module Rack
 
         def render(scope, &block)
           ERB.new(IO.read(@file)).result(scope._binding(&block))
+        end
+
+        def default_mime_type
+          'text/html'
         end
       end
     end
@@ -138,8 +139,8 @@ module Rack
       end
 
       def partial(file)
-        if tpl_file = Dir["#{file}{.*,}"].first and tpl = Template[tpl_file]
-          Template[tpl_file].render(self)
+        if tpl_file = Dir["#{file}{.*,}"].first and template = Template[tpl_file]
+          template.render(self)
         else
           IO.read(file)
         end

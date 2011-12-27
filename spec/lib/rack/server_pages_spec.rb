@@ -22,8 +22,8 @@ describe 'Rack::ServerPages' do
     should_be_not_found '/examples/index.htm'
     should_be_not_found '/examples/.htaccess'
 
-    should_be_ok        '/examples/slim'
-    should_be_ok        '/examples/slim.html'
-    should_be_not_found '/examples/slim.html.slim'
+#    should_be_ok        '/examples/slim'
+#    should_be_ok        '/examples/slim.html'
+#    should_be_not_found '/examples/slim.html.slim'
   end
 end

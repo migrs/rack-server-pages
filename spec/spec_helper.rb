@@ -9,9 +9,10 @@ RSpec.configure do |conf|
   conf.include Rack::Test::Methods
 end
 
-require 'slim'
-Tilt.register Tilt::ERBTemplate, 'php'
-Tilt::ERBTemplate.default_mime_type = 'text/html'
+#require 'slim'
+#Tilt.register Tilt::ERBTemplate, 'php'
+#Tilt::ERBTemplate.default_mime_type = 'text/html'
+Rack::ServerPages::Template::ERBTemplate::EXTENSIONS << 'php'
 
 def app
   @app ||=Rack::Builder.app do
