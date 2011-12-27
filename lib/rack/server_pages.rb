@@ -9,6 +9,11 @@ require 'erb'
 require 'ruby-debug'
 require 'tapp'
 
+#class ERB
+#  def result(b=TOPLEVEL_BINDING)
+#    eval(@src, b, (@filename || '(erb)'), 0)
+#  end
+#end
 module Rack
   class ServerPages
     VERSION = '0.0.1'
@@ -97,8 +102,7 @@ module Rack
         end
 
         def render(scope, &block)
-          # TODO: support block
-          ERB.new(IO.read(@file)).result(scope._binding)
+          ERB.new(IO.read(@file)).result(scope._binding(&block))
         end
       end
     end

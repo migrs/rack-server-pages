@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>rack-server-pages Tilt examples</title>
+  </head>
+  <body>
+    <h1>rack-server-pages examples</h1>
+    <%= partial 'views/examples/_time.html' %>
+    <%= yield %>
+    <% unless request.path =~ %r!^/examples/(index(\.html)?)?$! %>
+      <a href="/examples/">List examples</a>
+    <% end %>
+  </body>
+</html>
