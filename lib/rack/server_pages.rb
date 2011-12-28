@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'rack'
 require 'time'
 require 'rack/utils'
@@ -11,6 +12,7 @@ require 'tapp'
 module Rack
   class ServerPages
     VERSION = '0.0.1'
+    DEFAULT_CHARSET = 'utf-8'
 
     def initialize(app, options = {})
       @app = app
@@ -18,6 +20,7 @@ module Rack
       @roots = options[:root].kind_of?(Enumerable) ? options[:root] :
         (options[:root].nil? or options[:root].empty?) ? %w(views public) : [options[:root].to_s]
       @cache_control = options[:cache_control]
+      @default_charset = options[:default_charset] || 'utf-8'
     end
 
     def call(env)
@@ -39,7 +42,7 @@ module Rack
             catch(:halt) do
               res.write template.render_with_layout(scope)
               res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
-              res['Content-Type']  ||= template.mime_type
+              res['Content-Type']  ||= template.mime_type_with_charset
               res['Cache-Control'] ||= @cache_control if @cache_control
             end
           end.finish
@@ -73,11 +76,17 @@ module Rack
         Mime.mime_type(ext, default_mime_type)
       end
 
+      def mime_type_with_charset
+        if (m = mime_type) =~ %!^((text/\w+)|application/(javascript|xml|xhtml\+xml|json))$!
+         "#{m}; charset=#{DEFAULT_CHARSET}"
+        end
+      end
+
       def render_with_layout(scope, &block)
         content = render(scope, &block)
         if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
           scope.layout(false)
-          Template[layout_file].render(scope) { content }
+          Template[layout_file].render_with_layout(scope) { content }
         else
           content
         end
@@ -111,7 +120,7 @@ module Rack
         end
 
         def default_mime_type
-          'text/html'
+          "text/html"
         end
       end
     end
@@ -127,20 +136,7 @@ module Rack
       end
     end
 
-    class Binding
-      extend Forwardable
-
-      attr_reader :request
-      attr_reader :response
-
-      def_delegators :request, :env, :params, :session, :cookies, :logger
-      def_delegators :response, :headers, :set_cookies, :delete_cookie
-
-      def initialize(env)
-        @request  = Rack::Request.new(env)
-        @response = Rack::Response.new
-      end
-
+    module CoreHelper
       def redirect(target, status=302)
         response.redirect(target, status)
         halt
@@ -179,11 +175,30 @@ module Rack
       def url(path = "")
         env['SCRIPT_NAME'] + (path.to_s[0,1]!='/'?'/':'') + path.to_s
       end
+    end
+
+    class Binding
+      extend Forwardable
+      include CoreHelper
+      include ERB::Util
+
+      attr_reader :request
+      attr_reader :response
+
+      def_delegators :request, :env, :params, :session, :cookies, :logger
+      def_delegators :response, :headers, :set_cookies, :delete_cookie
+
+      def initialize(env)
+        @request  = Rack::Request.new(env)
+        @response = Rack::Response.new
+        @response['Content-Type'] = "text/html; charset=#{DEFAULT_CHARSET}"
+      end
 
       def _binding
         binding
       end
     end
+
   end
 end
 

@@ -1,14 +1,17 @@
 Rack Server Pages
 =================
 
-Rack middleware for serving dynamic pages with Tilt template interface.
+Rack middleware for serving dynamic pages.
 There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Features
-- Render with Tilt
+- Serving dynamic pages (default: ERB)
+- Serving static files
+- No requirements (except Rack)
+- Tilt Support (optional)
 - Include a partial template
 - Layout template
-- Serve static files
+- Integrate with any rack applications (Rails, Sinatra, etc...)
 
 ## Install
 ```sh
@@ -40,7 +43,7 @@ run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['Not Found']]}
 ## Done
 - Rack::URLMap
 ## ToDo
-- Gem file
-- stacktrace
-- Form Helper
-- static generator
+- Before/After filter
+- Exeption stacktrace
+- Form Helpers
+- Static file generator
