@@ -4,6 +4,7 @@ gemspec
 
 group :development do
   gem 'rake'
+  gem 'thin'
   gem 'guard'
   gem 'guard-bundler'
   gem 'guard-rspec'
@@ -22,7 +23,7 @@ end
 group :development, :test do
   gem 'tapp'
   gem 'ruby-debug', :platforms => :ruby_18
-  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
+#  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
 end
 
 # Tilt
@@ -41,10 +42,10 @@ end
 #gem 'maruku'
 #gem 'nokogiri'
 #gem 'radius'
-#gem 'rdiscount'
+gem 'rdiscount'
 #gem 'rdoc'
 #gem 'redcarpet'
 #gem 'sass'
 #gem 'wikicloth'
 #gem 'yajl-ruby'
-#gem 'slim'
+gem 'slim'

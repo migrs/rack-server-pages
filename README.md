@@ -19,12 +19,13 @@ gem install rack-server-pages
 ```
 
 ## Basic usage
-```
+```file
 config.ru
 public/index.erb
 ```
 
 `config.ru`
+
 ```ruby
 require 'rack-server-pages'
 use Rack::ServerPages
@@ -32,7 +33,8 @@ run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['Not Found']]}
 ```
 
 `public/index.erb`
-```eruby
+
+```php
 <h1>Hello rack!</h1>
 <p><%= Time.now %></p>
 ```
@@ -44,6 +46,6 @@ run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['Not Found']]}
 - Rack::URLMap
 ## ToDo
 - Before/After filter
-- Exeption stacktrace
+- Charset setting
 - Form Helpers
-- Static file generator
+- Static file generator (for designer)

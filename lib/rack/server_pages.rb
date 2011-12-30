@@ -8,49 +8,92 @@ require 'forwardable'
 
 require 'ruby-debug'
 require 'tapp'
-
 module Rack
   class ServerPages
     VERSION = '0.0.1'
-    DEFAULT_CHARSET = 'utf-8'
 
-    def initialize(app, options = {})
-      @app = app
-      @path = options[:path] || '/'
-      @roots = options[:root].kind_of?(Enumerable) ? options[:root] :
-        (options[:root].nil? or options[:root].empty?) ? %w(views public) : [options[:root].to_s]
-      @cache_control = options[:cache_control]
-      @default_charset = options[:default_charset] || 'utf-8'
+    def self.call(env)
+      new.call(env)
+    end
+
+    def self.[](options={}, &block)
+      new(nil, options, &block)
+    end
+
+    def initialize(app = nil, options = {})
+      @config = Config.new(*options)
+      yield @config if block_given?
     end
 
     def call(env)
-      _call(env)
+      serving(env)
     end
 
   private
-    def _call(env)
-      files = if m = env['PATH_INFO'].match(%r!^#{@path}((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
-        Dir[@roots.map{|root|"#{root}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"}.join("\0")].select{|s|s.include?('.')}
-      end
 
-      response = if files and !files.empty?
-        tpl_file = files[0]
+    def serving(env)
+      files = find_template_files *evalute_path_info(env['PATH_INFO']) rescue []
 
-        if template = Template[tpl_file]
+      unless files.empty?
+        file = select_template_file(files)
+
+        if template = Template[file]
           scope = Binding.new(env)
           scope.response.tap do |res|
             catch(:halt) do
               res.write template.render_with_layout(scope)
-              res['Last-Modified'] ||= ::File.mtime(tpl_file).httpdate
-              res['Content-Type']  ||= template.mime_type_with_charset
-              res['Cache-Control'] ||= @cache_control if @cache_control
+              res['Last-Modified'] ||= ::File.mtime(file).httpdate
+              res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
+              res['Cache-Control'] ||= @config.cache_control if @config.cache_control
             end
           end.finish
         else
-          StaticFile.new(tpl_file, @cache_control).call(env)
+          StaticFile.new(file, @config.cache_control).call(env)
         end
       else
-        @app.call(env)
+        @app ? @app.call(env) : @config.failure_app ? @config.failure_app.call(env) : NotFound.call(env)
+      end
+    end
+
+    def find_template_files(dir, file, ext)
+      Dir[@config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0")].select{|s|s.include?('.')}
+    end
+
+    def select_template_file(files)
+      files.first
+    end
+
+    def evalute_path_info(path)
+      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+        m[1,3] # dir, file, ext
+      end
+    end
+
+    class Config < Hash
+      def self.hash_accessor(*names)
+        names.each do |name|
+          define_method("#{name}=") { |v| self[name.intern] = v }
+          define_method(name) { self[name.intern] }
+        end
+      end
+
+      hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app
+
+      def initialize
+        super
+        self[:default_charset] ||= 'utf-8'
+        self[:view_path] ||= %w(views public)
+      end
+
+      def view_paths
+        v = self[:view_path]
+        v.kind_of?(Enumerable) ? v : [v.to_s]
+      end
+    end
+
+    class NotFound
+      def self.call(env)
+        Rack::Response.new(["Not Found: #{env['REQUEST_PATH']}"], 404).finish
       end
     end
 
@@ -76,9 +119,11 @@ module Rack
         Mime.mime_type(ext, default_mime_type)
       end
 
-      def mime_type_with_charset
-        if (m = mime_type) =~ %!^((text/\w+)|application/(javascript|xml|xhtml\+xml|json))$!
-         "#{m}; charset=#{DEFAULT_CHARSET}"
+      def mime_type_with_charset(charset)
+        if (m = mime_type) =~ %r!^(text/\w+|application/(?:javascript|(xhtml\+)?xml|json))$!
+         "#{m}; charset=#{charset}"
+        else
+         m
         end
       end
 
@@ -182,8 +227,7 @@ module Rack
       include CoreHelper
       include ERB::Util
 
-      attr_reader :request
-      attr_reader :response
+      attr_reader :request, :response
 
       def_delegators :request, :env, :params, :session, :cookies, :logger
       def_delegators :response, :headers, :set_cookies, :delete_cookie
@@ -191,7 +235,7 @@ module Rack
       def initialize(env)
         @request  = Rack::Request.new(env)
         @response = Rack::Response.new
-        @response['Content-Type'] = "text/html; charset=#{DEFAULT_CHARSET}"
+        @response['Content-Type'] = nil
       end
 
       def _binding

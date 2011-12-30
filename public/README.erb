@@ -1,2 +1,2 @@
-<% headers['Content-Type'] = 'text/partial' unless Template.tilt? %>
-<%= partial 'README.md' %>
+<% headers['Content-Type'] = 'text/partial' unless Rack::ServerPages::Template.tilt? %>
+<%= (partial 'README.md') %>

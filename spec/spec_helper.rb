@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'rack/test'
-require 'ruby-debug'
+#require 'ruby-debug'
 require 'tapp'
 require 'simplecov'
 SimpleCov.start
@@ -30,7 +30,7 @@ def should_be_ok(path)
     before { get path }
     subject { last_response }
     it { should be_ok }
-    its(:content_type) { should eq 'text/html' }
+    its(:content_type) { should match %r{\btext/html\b} }
   end
 end
 
