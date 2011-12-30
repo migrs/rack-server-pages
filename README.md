@@ -46,6 +46,13 @@ Finally running `rackup`
 
 and visit <http://localhost:9292/>
 
+Valid requests,
+
+- <http://localhost:9292/>
+- <http://localhost:9292/index>
+- <http://localhost:9292/index.html>
+- <http://localhost:9292/index.erb>
+
 ### Use as Rack middleware
 
 Edit `config.ru`
@@ -114,15 +121,18 @@ with block
 - view\_path
   - Views folders to load templates from.
   - default: [views, public]
+
 - effective\_path
   - default: nil
+
 - default\_charset
   - default: utf-8
+
 - cache\_control
   - default: nil
+
 - failure\_app
   - default: nil
-
 
 ## Tilt support
 [Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.  
@@ -133,17 +143,211 @@ If you want to use Tilt, just `require 'tilt'` and require template engine libra
     require 'rdiscount' # markdown library
     run Rack::ServerPages
 
-see <http://localhost:9292/examples/>
+### [Markdown](http://daringfireball.net/projects/markdown/)
+
+`views/article.html.md`
+
+    A First Level Header
+    ====================
+
+    A Second Level Header
+    ---------------------
+
+    Now is the time for all good men to come to
+    the aid of their country. This is just a
+    regular paragraph.
+
+    ### Header 3
+
+    > This is a blockquote.
+    > Thank you
+
+    [source](http://github.com/migrs/rack-server-pages)
+
+<http://localhost:9292/article.html>
+
+    <h1>A First Level Header</h1>
+
+    <h2>A Second Level Header</h2>
+
+    <p>Now is the time for all good men to come to
+    the aid of their country. This is just a
+    regular paragraph.</p>
+
+    <h3>Header 3</h3>
+
+    <blockquote><p>This is a blockquote.
+    Thank you</p></blockquote>
+
+    <p><a href="http://github.com/migrs/rack-server-pages">source</a></p>
+
+
+### [Slim](http://slim-lang.com/)
+
+`views/about.html.slim`
+
+    doctype html
+    html
+      head
+        title Slim Core Example
+        meta name="keywords" content="template language"
+
+      body
+        h1 Markup examples
+
+        div id="content" class="example1"
+          p Nest by indentation
+
+<http://localhost:9292/about.html>
+
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Slim Core Example</title>
+        <meta content="template language" name="keywords" />
+      </head>
+      <body>
+        <h1>Markup examples</h1>
+        <div class="example1" id="content">
+          <p>Nest by indentation</p>
+        </div>
+      </body>
+    </html>
+
+### [Sass](http://sass-lang.com/)
+
+`views/betty.css.sass`
+
+    $blue: #3bbfce
+    $margin: 16px
+
+    .content-navigation
+      border-color: $blue
+      color: darken($blue, 9%)
+
+    .border
+      padding: $margin / 2
+      margin: $margin / 2
+      border-color: $blue
+
+<http://localhost:9292/betty.css>
+
+    .content-navigation {
+      border-color: #3bbfce;
+      color: #2ca2af; }
+
+    .border {
+      padding: 8px;
+      margin: 8px;
+      border-color: #3bbfce; }
+
+### [Builder](http://builder.rubyforge.org/)
+
+`views/contact.xml.builder`
+
+    xml.instruct!
+    xml.result do |result|
+      result.name "John"
+      result.phone "910-1974"
+    end
+
+<http://localhost:9292/contact.xml>
+
+    <result>
+      <name>John</name>
+      <phone>910-1974</phone>
+    </result>
+
+### [CoffeeScript](http://jashkenas.github.com/coffee-script/)
+
+`views/script.js.coffee`
+    number   = 42
+    opposite = true
+
+    number = -42 if opposite
+
+    square = (x) -> x * x
+
+    list = [1, 2, 3, 4, 5]
+
+    math =
+      root:   Math.sqrt
+      square: square
+      cube:   (x) -> x * square x
+
+<http://localhost:9292/script.js>
+
+    (function() {
+      var list, math, number, opposite, square;
+
+      number = 42;
+
+      opposite = true;
+
+      if (opposite) number = -42;
+
+      square = function(x) {
+        return x * x;
+      };
+
+      list = [1, 2, 3, 4, 5];
+
+      math = {
+        root: Math.sqrt,
+        square: square,
+        cube: function(x) {
+          return x * square(x);
+        }
+      };
+
+    }).call(this);
+
+see more <http://localhost:9292/examples/>
 
 ## Integrate with Rack applications
 
+At first, create sample file: `public/hello.erb` or `views/hello.html.erb`
+
+    <p>Hello Rack Server Pages!</p>
+    <p><%= Time.now %></p>
+
 ### Rails
 
-`config/environment.rb`
+Add to `config/environment.rb` (Rails2) or `config/application.rb` (Rails3)
 
     config.middleware.use Rack::ServerPages
 
-### Sinatra / Padrino
+And run
+
+Rails2
+
+    script/server
+
+Rails3
+
+    rails s
+
+- <http://localhost:3000/> is Rails response
+- <http://localhost:3000/hello> is Rack Server Pages response
+
+### Sinatra
+
+Create `sinatra_sample.rb`
+
+    require 'sinatra'
+    require 'rack-server-pages'
+
+    get '/' do
+      '<p>Hello Sinatra!</p>'
+    end
+
+
+And run
+
+    ruby sinatra_sample.rb`
+
+- <http://localhost:4567/> is Sinatra response
+- <http://localhost:4567/hello> is Rack Server Pages response
 
 ## Customize
 
@@ -158,6 +362,12 @@ ERBTemplate (default)
 TiltTemplate (see. [Template Mappings](http://github.com/rtomayko/tilt))
 
     Tilt.register Tilt::ERBTemplate, 'php'
+
+And create `public/info.php` :)
+
+    <%= phpinfo(); %>
+
+<http://localhost:9292/info.php>
 
 ## ToDo
 
@@ -178,9 +388,4 @@ TiltTemplate (see. [Template Mappings](http://github.com/rtomayko/tilt))
   - Benchmark
 
 ## License
-[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2011 [Masato Igarashi](http://m.igrs.jp/)(@[migrs](http://twitter.com/migrs)) and distributed under the [MIT license](http://www.opensource.org/licenses/mit-license).
-
-### Info & Contacts
-- <http://m.igrs.jp/>
-- <http://github.com/migrs>
-- <http://twitter.com/migrs>
+[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2011 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and distributed under the [MIT license](http://www.opensource.org/licenses/mit-license).

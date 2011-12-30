@@ -1,6 +1,8 @@
 source :rubygems
 
-gemspec
+gem 'rack'
+
+#gemspec
 
 group :development do
   gem 'rake'
@@ -23,30 +25,30 @@ end
 group :development, :test do
   gem 'tapp'
   gem 'ruby-debug', :platforms => :ruby_18
-#  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
+  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
 end
 
 # Tilt
 gem 'tilt'
-#gem 'RedCloth'
-#gem 'bluecloth'
-#gem 'builder'
-#gem 'coffee-script'
-#gem 'contest'
-#gem 'creole'
-#gem 'erubis'
-#gem 'haml'
-#gem 'kramdown'
-#gem 'less'
-#gem 'liquid'
-#gem 'markaby'
-#gem 'maruku'
-#gem 'nokogiri'
-#gem 'radius'
+gem 'RedCloth'
+gem 'bluecloth'
+gem 'builder'
+gem 'coffee-script'
+gem 'contest'
+gem 'creole'
+gem 'erubis'
+gem 'haml'
+gem 'kramdown'
+gem 'less'
+gem 'liquid'
+gem 'markaby'
+gem 'maruku'
+gem 'nokogiri'
+gem 'radius'
 gem 'rdiscount'
-#gem 'rdoc'
+gem 'rdoc'
 #gem 'redcarpet'
-#gem 'sass'
-#gem 'wikicloth'
-#gem 'yajl-ruby'
+gem 'sass'
+gem 'wikicloth'
+gem 'yajl-ruby'
 gem 'slim'

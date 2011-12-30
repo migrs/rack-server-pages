@@ -6,8 +6,6 @@ require 'rack/mime'
 require 'rack/logger'
 require 'forwardable'
 
-require 'ruby-debug'
-require 'tapp'
 module Rack
   class ServerPages
     VERSION = '0.0.1'
