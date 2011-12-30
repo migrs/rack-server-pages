@@ -22,8 +22,46 @@ describe 'Rack::ServerPages' do
     should_be_not_found '/examples/index.htm'
     should_be_not_found '/examples/.htaccess'
 
-#    should_be_ok        '/examples/slim'
-#    should_be_ok        '/examples/slim.html'
-#    should_be_not_found '/examples/slim.html.slim'
+  end
+
+  describe 'Rack::ServerPages private methods' do
+    describe '#evalute_path_info' do
+      subject { app.new.__send__(:evalute_path_info, path_info) }
+
+      context '/aaa/bbb.erb' do
+        let(:path_info) { '/aaa/bbb.erb' }
+        it { should eq %w(aaa/ bbb .erb) }
+      end
+
+      context '/aaa/bbb/ccc.erb' do
+        let(:path_info) { '/aaa/bbb/ccc.erb' }
+        it { should eq %w(aaa/bbb/ ccc .erb) }
+      end
+
+      context '/aaa/bbb/ccc.' do
+        let(:path_info) { '/aaa/bbb/ccc.' }
+        it { should be_nil }
+      end
+
+      context '/aaa/bbb/ccc' do
+        let(:path_info) { '/aaa/bbb/ccc' }
+        it { should eq ['aaa/bbb/', 'ccc', nil] }
+      end
+
+      context '/aaa-bbb/ccc' do
+        let(:path_info) { '/aaa-bbb/ccc' }
+        it { should eq ['aaa-bbb/', 'ccc', nil] }
+      end
+
+      context '/aaa/bbb/' do
+        let(:path_info) { '/aaa/bbb/' }
+        it { should eq ['aaa/bbb/', nil, nil] }
+      end
+
+      context '/' do
+        let(:path_info) { '/' }
+        it { should eq [nil, nil, nil] }
+      end
+    end
   end
 end

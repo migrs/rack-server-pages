@@ -1,23 +1,22 @@
 # -*- encoding: utf-8 -*-
 require 'rack/test'
-#require 'ruby-debug'
+require 'ruby-debug'
 require 'tapp'
 require 'simplecov'
+require File.dirname(__FILE__) + '/../lib/rack/server_pages'
 SimpleCov.start
 
 RSpec.configure do |conf|
   conf.include Rack::Test::Methods
 end
 
-#require 'slim'
-#Tilt.register Tilt::ERBTemplate, 'php'
-#Tilt::ERBTemplate.default_mime_type = 'text/html'
-Rack::ServerPages::Template::ERBTemplate::EXTENSIONS << 'php'
+require 'tilt'
+require 'slim'
+Tilt.register Tilt::ERBTemplate, 'php'
 
 def app
   @app ||=Rack::Builder.app do
-    use Rack::ServerPages
-    run lambda {|e| [404, {'Content-Type' => 'text/plain'}, ['Not Found']]}
+    run Rack::ServerPages
   end
 end
 

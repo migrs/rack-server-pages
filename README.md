@@ -1,7 +1,7 @@
 Rack Server Pages
 =================
 
-Rack middleware and application for serving dynamic pages.  
+Rack middleware and application for serving dynamic pages in very simple way.  
 There are no controllers or models, just only views like a jsp, asp and php!
 
 <http://github.com/migrs/rack-server-pages>
@@ -142,6 +142,8 @@ If you want to use Tilt, just `require 'tilt'` and require template engine libra
     require 'tilt'
     require 'rdiscount' # markdown library
     run Rack::ServerPages
+
+or put your `Gemfile`
 
 ### [Markdown](http://daringfireball.net/projects/markdown/)
 
@@ -349,7 +351,7 @@ And run
 - <http://localhost:4567/> is Sinatra response
 - <http://localhost:4567/hello> is Rack Server Pages response
 
-## Customize
+## Customization
 
 ### Customize file extension associations
 
@@ -368,6 +370,10 @@ And create `public/info.php` :)
     <%= phpinfo(); %>
 
 <http://localhost:9292/info.php>
+
+## Demo site
+
+<http://rack-server-pages.heroku.com/>
 
 ## ToDo
 
