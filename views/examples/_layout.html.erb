@@ -1,14 +1,14 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>rack-server-pages Tilt examples</title>
+    <link href="<%=url("/style.css")%>" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <h1>rack-server-pages examples</h1>
     <%= partial 'views/examples/_time.html' %>
     <%= yield %>
-    <% unless request.path =~ %r!^/examples/(index(\.html)?)?$! %>
-      <a href="/examples/">List examples</a>
+    <% unless request.path =~ %r!/examples/(index(\.html)?)?$! %>
+      <a href="<%=url('/examples/')%>">List examples</a>
     <% end %>
   </body>
 </html>

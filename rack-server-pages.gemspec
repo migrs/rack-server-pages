@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Masato Igarashi"]
   s.email       = ["m@igrs.jp"]
   s.homepage    = "http://m.igrs.jp/"
-  s.summary     = %q{Rack middleware that serve a view templates directly with tilt.}
+  s.summary     = %q{Rack middleware and appilcation for serving dynamic pages.}
   s.description = %q{There are no controllers and no models, just only views like a asp, jsp and php!}
 
   s.rubyforge_project = "rack-server-pages"

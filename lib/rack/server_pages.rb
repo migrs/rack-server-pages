@@ -23,6 +23,7 @@ module Rack
     def initialize(app = nil, options = {})
       @config = Config.new(*options)
       yield @config if block_given?
+      @app = app || @config.failure_app || NotFound
     end
 
     def call(env)
@@ -32,9 +33,9 @@ module Rack
   private
 
     def serving(env)
-      files = find_template_files *evalute_path_info(env['PATH_INFO']) rescue []
+      files = find_template_files *evalute_path_info(env['PATH_INFO']) rescue nil
 
-      unless files.empty?
+      unless files.nil? or files.empty?
         file = select_template_file(files)
 
         if template = Template[file]
@@ -51,7 +52,13 @@ module Rack
           StaticFile.new(file, @config.cache_control).call(env)
         end
       else
-        @app ? @app.call(env) : @config.failure_app ? @config.failure_app.call(env) : NotFound.call(env)
+        @app.call(env)
+      end
+    end
+
+    def evalute_path_info(path)
+      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+        m[1,3] # dir, file, ext
       end
     end
 
@@ -61,12 +68,6 @@ module Rack
 
     def select_template_file(files)
       files.first
-    end
-
-    def evalute_path_info(path)
-      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
-        m[1,3] # dir, file, ext
-      end
     end
 
     class Config < Hash
@@ -86,8 +87,7 @@ module Rack
       end
 
       def view_paths
-        v = self[:view_path]
-        v.kind_of?(Enumerable) ? v : [v.to_s]
+        (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
       end
     end
 
@@ -147,17 +147,20 @@ module Rack
         end
 
         def default_mime_type
-          @tilt.default_mime_type
+          @tilt.default_mime_type || 'text/html'
         end
       end
 
       class ERBTemplate < Template
         require 'erb'
 
-        EXTENSIONS = %w(erb rhtml)
+        def self.extensions(ext = nil)
+          @@extensions = ext if ext
+          @@extensions ||= %w(erb rhtml)
+        end
 
         def find_template
-          (@file =~ /\.(#{EXTENSIONS.join('|')})$/) and ::File.exist?(@file) ? self : nil
+          (@file =~ /\.(#{@@extensions.join('|')})$/) and ::File.exist?(@file) ? self : nil
         end
 
         def render(scope, &block)
@@ -315,7 +318,7 @@ module Rack::ServerPages::Binding::Extra
         <% else %>
         <h2>ERB Template</h2>
         <table border="0" cellpadding="3" width="600">
-          <tr><td class="e">extensions</td><td class="v"><%=Rack::ServerPages::Template::ERBTemplate::EXTENSIONS.join(', ')%></td></tr>
+          <tr><td class="e">extensions</td><td class="v"><%=Rack::ServerPages::Template::ERBTemplate.extensions.join(', ')%></td></tr>
         </table>
         <% end %>
         <h2>Binding</h2>

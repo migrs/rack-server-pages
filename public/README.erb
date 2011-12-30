@@ -1,2 +1,3 @@
-<% headers['Content-Type'] = 'text/partial' unless Rack::ServerPages::Template.tilt? %>
-<%= (partial 'README.md') %>
+<% layout('public/_layout.html') %>
+<%# Rack::ServerPages::Template.tilt? ? layout('_layout.html') : headers['Content-Type'] = 'text/plain' %>
+<%= partial 'README.md' %>

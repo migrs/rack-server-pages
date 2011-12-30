@@ -27,6 +27,7 @@ group :development, :test do
 end
 
 # Tilt
+gem 'tilt'
 #gem 'RedCloth'
 #gem 'bluecloth'
 #gem 'builder'

@@ -7,3 +7,5 @@ pkg/*
 tmp/*
 .sass-cache
 coverage/
+.rbenv-version
+.rvmrc
