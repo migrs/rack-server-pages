@@ -1,10 +1,13 @@
-require 'rack'
-require 'rack/contrib/try_static'
-require File.dirname(__FILE__) + '/lib/rack/server_pages'
+# -*- encoding: utf-8 -*-
+require 'bundler/setup'
+require './lib/rack/server_pages'
 
-use Rack::ServerPages,
-    :root => "public",
-    :urls => %w[/],
-    :try => ['.html', 'index.html', '/index.html']
+# Tilt settings
+require 'tilt'
+require 'slim'
 
-run lambda {|e| [404, {'Content-Type' => 'text/html'}, ['File Not Found']]}
+# .php as ERB template :)
+Rack::ServerPages::Template::ERBTemplate.extensions << 'php' # ERBTemplate
+Tilt.register Tilt::ERBTemplate, 'php' # TiltTemplate
+
+run Rack::ServerPages

@@ -1,0 +1,9 @@
+ruby:
+  layout 'views/examples/_layout.html'
+  src = params['src'][/(\w+\.)?(\w+)$/, 0]
+h2 source
+code = file = Dir["views/examples/#{src}.*"].first
+pre style="background-color:#122831;color:#B3B3B3;padding:1em;" =IO.read(file)
+a href=(u=url("/examples/#{src}")) = u
+iframe src=u width="100%"
+

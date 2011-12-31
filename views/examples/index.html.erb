@@ -1,0 +1,9 @@
+<% layout 'views/examples/_layout.html' %>
+<h2>Tilt examples</h2>
+<ul>
+  <% for file in Dir["views/examples/*"] %>
+  <li>
+    <a href="./<%= file[%r!/examples/(\w+\.\w+)(?:\.\w+)?$!, 1]%>"><%=$1%></a>
+  </li>
+  <% end %>
+</ul>

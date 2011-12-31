@@ -1,0 +1,8 @@
+<h1>Hello <%=h(params["name"] || "Rack")%>!!</h1>
+<p>Current Time: <%= Time.now %></p>
+What's your name?:
+<form>
+  <input type="text" name="name" value="<%=h params["name"]%>" />
+  <input type="submit" />
+</form>
+
