@@ -8,7 +8,7 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
 
     def self.call(env)
       new.call(env)
@@ -160,12 +160,12 @@ module Rack
         require 'erb'
 
         def self.extensions(ext = nil)
-          @@extensions = ext if ext
-          @@extensions ||= %w(erb rhtml)
+          @extensions = ext if ext
+          @extensions ||= %w(erb rhtml)
         end
 
         def find_template
-          (@file =~ /\.(#{@@extensions.join('|')})$/) and ::File.exist?(@file) ? self : nil
+          (@file =~ /\.(#{self.class.extensions.join('|')})$/) and ::File.exist?(@file) ? self : nil
         end
 
         def render(scope, &block)
