@@ -1,8 +1,7 @@
 source :rubygems
 
 gem 'rack'
-
-#gemspec
+#gemspec #didn't work in heroku
 
 group :development do
   gem 'rake'
@@ -24,8 +23,8 @@ end
 
 group :development, :test do
   gem 'tapp'
-  gem 'ruby-debug', :platforms => :ruby_18
-  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
+#  gem 'ruby-debug', :platforms => :ruby_18
+#  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
 end
 
 # Tilt

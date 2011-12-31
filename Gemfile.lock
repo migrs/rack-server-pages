@@ -117,8 +117,6 @@ DEPENDENCIES
   rdiscount
   rdoc
   rspec
-  ruby-debug
-  ruby-debug19
   sass
   simplecov
   slim

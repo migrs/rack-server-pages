@@ -7,7 +7,6 @@ There are no controllers or models, just only views like a jsp, asp and php!
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://secure.travis-ci.org/migrs/rack-server-pages.png)](http://travis-ci.org/migrs/rack-server-pages)
-[![Dependency Status](https://gemnasium.com/migrs/rack-server-pages.png?travis)](https://gemnasium.com/migrs/rack-server-pages)
 
 ## Features
 
