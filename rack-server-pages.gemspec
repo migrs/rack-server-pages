@@ -7,9 +7,10 @@ Gem::Specification.new do |s|
   s.version     = Rack::ServerPages::VERSION
   s.authors     = ["Masato Igarashi"]
   s.email       = ["m@igrs.jp"]
-  s.homepage    = "http://m.igrs.jp/"
+  s.homepage    = "http://github.com/migrs/rack-server-pages"
   s.summary     = %q{Rack middleware and appilcation for serving dynamic pages in very simple way.}
-  s.description = %q{There are no controllers and no models, just only views like a asp, jsp and php!}
+  s.description = %q{Rack middleware and appilcation for serving dynamic pages in very simple way.
+                     There are no controllers and no models, just only views like a asp, jsp and php!}
 
   s.rubyforge_project = "rack-server-pages"
 
