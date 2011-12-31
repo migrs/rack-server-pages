@@ -39,7 +39,7 @@ gem 'creole'
 gem 'erubis'
 gem 'haml'
 gem 'kramdown'
-gem 'less'
+gem 'less', :platforms => [:ruby_18, :ruby_19]
 gem 'liquid'
 gem 'markaby'
 gem 'maruku'

@@ -2,7 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe 'Rack::ServerPages' do
   describe 'Basic requests' do
-    should_be_ok '/'
+    before { get path_info }
+    subject { last_response }
+
+    should_be_ok        '/'
     should_be_not_found '/hoge'
 
     should_be_not_found '/inf'
@@ -21,7 +24,6 @@ describe 'Rack::ServerPages' do
     should_be_ok        '/examples/index.html'
     should_be_not_found '/examples/index.htm'
     should_be_not_found '/examples/.htaccess'
-
   end
 
   describe 'Rack::ServerPages private methods' do

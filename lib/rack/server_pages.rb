@@ -61,7 +61,14 @@ module Rack
     end
 
     def find_template_files(dir, file, ext)
-      Dir[@config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0")].select{|s|s.include?('.')}
+      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
+      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
+      #Dir[path].select{|s|s.include?('.')}
+      [].tap do |files| # universal way
+        @config.view_paths.each do |root|
+          files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
+        end
+      end
     end
 
     def select_template_file(files)
@@ -71,8 +78,8 @@ module Rack
     class Config < Hash
       def self.hash_accessor(*names)
         names.each do |name|
-          define_method("#{name}=") { |v| self[name.intern] = v }
-          define_method(name) { self[name.intern] }
+          define_method("#{name}=") { |v| self[name] = v }
+          define_method(name) { self[name] }
         end
       end
 

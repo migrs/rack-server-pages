@@ -6,6 +6,9 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 <http://github.com/migrs/rack-server-pages>
 
+[![Build Status](https://secure.travis-ci.org/migrs/rack-server-pages.png)](http://travis-ci.org/migrs/rack-server-pages)
+[![Dependency Status](https://gemnasium.com/migrs/rack-server-pages.png?travis)](https://gemnasium.com/migrs/rack-server-pages)
+
 ## Features
 
 - Serving dynamic pages (default: ERB)
@@ -23,6 +26,8 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - [Rack](http://github.com/rack/rack)
 
 ## Install
+
+[RubyGems](http://rubygems.org/gems/rack-server-pages) available
 
     gem install rack-server-pages
 
@@ -50,8 +55,8 @@ Valid requests,
 
 - <http://localhost:9292/>
 - <http://localhost:9292/index>
-- <http://localhost:9292/index.html>
 - <http://localhost:9292/index.erb>
+- <http://localhost:9292/index.html>
 
 ### Use as Rack middleware
 
