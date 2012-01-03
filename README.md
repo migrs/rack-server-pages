@@ -21,7 +21,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Requirements
 
-- [Ruby](http://ruby-lang.org/) 1.8.7 or 1.9.x
+- [Ruby](http://ruby-lang.org/) 1.8.7, 1.9.x, jruby 1.6.x
 - [Rack](http://github.com/rack/rack)
 
 ## Install
@@ -267,6 +267,7 @@ or put your `Gemfile`
 ### [CoffeeScript](http://jashkenas.github.com/coffee-script/)
 
 `views/script.js.coffee`
+
     number   = 42
     opposite = true
 
@@ -342,6 +343,8 @@ Create `sinatra_sample.rb`
 
     require 'sinatra'
     require 'rack-server-pages'
+
+    use Rack::ServerPages
 
     get '/' do
       '<p>Hello Sinatra!</p>'
