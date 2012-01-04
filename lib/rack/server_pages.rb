@@ -55,7 +55,7 @@ module Rack
     end
 
     def evalute_path_info(path)
-      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([a-zA-Z0-9]\w*)?(\.\w+)?$!)
+      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
         m[1,3] # dir, file, ext
       end
     end

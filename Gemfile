@@ -9,10 +9,11 @@ group :development do
   gem 'guard'
   gem 'guard-bundler'
   gem 'guard-rspec'
-  #gem 'rb-readline'
-  #gem 'rb-inotify', :require => false
-  #gem 'rb-fsevent', :require => false
-  #gem 'rb-fchange', :require => false
+  gem 'rb-readline'
+  gem 'rb-inotify', :require => false
+  gem 'rb-fsevent', :require => false
+  gem 'rb-fchange', :require => false
+  gem 'ruby_gntp'
 end
 
 group :test do
@@ -23,8 +24,8 @@ end
 
 group :development, :test do
   gem 'tapp'
-#  gem 'ruby-debug', :platforms => :ruby_18
-#  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
+  gem 'ruby-debug', :platforms => :ruby_18
+  gem 'ruby-debug19', :require => 'ruby-debug', :platforms => :ruby_19
 end
 
 # Tilt

@@ -27,7 +27,7 @@ def should_be_ok(path)
   context "GET #{path}" do
     let(:path_info) { path }
     it { should be_ok }
-    its(:content_type) { should match %r{\btext/html\b} }
+    its(:content_type) { should match %r!\b#{content_type}\b! }
   end
 end
 
