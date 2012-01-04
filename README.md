@@ -386,6 +386,7 @@ And create `public/info.php` :)
 
 ### Implements
 - Before/After filter
+- Error handling
 - Support Helpers
 - Static file generator (for designer)
 

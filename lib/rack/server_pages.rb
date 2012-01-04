@@ -36,16 +36,8 @@ module Rack
       unless files.nil? or files.empty?
         file = select_template_file(files)
 
-        if template = Template[file]
-          scope = Binding.new(env)
-          scope.response.tap do |res|
-            catch(:halt) do
-              res.write template.render_with_layout(scope)
-              res['Last-Modified'] ||= ::File.mtime(file).httpdate
-              res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
-              res['Cache-Control'] ||= @config.cache_control if @config.cache_control
-            end
-          end.finish
+        if template = Template[file, @config]
+          template.call(env)
         else
           StaticFile.new(file, @config.cache_control).call(env)
         end
@@ -94,6 +86,34 @@ module Rack
       def view_paths
         (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
       end
+
+      def add_filter(type, fn = nil, &block)
+        Filter.filters[type] << block if block_given?
+        Filter.filters[type] << fn if fn
+      end
+
+      def before(fn = nil, &block)
+        add_filter(:before, fn, &block)
+      end
+
+      def after(fn = nil, &block)
+        add_filter(:after, fn, &block)
+      end
+
+      def helpers(*extensions, &block)
+        Binding.class_eval(&block) if block_given?
+        extensions.each do |extension|
+          Binding.class_eval do
+            include extension
+            [:before, :after].each do |type|
+              if extension.method_defined?(type)
+                Filter.filters[type] << extension.instance_method(type)
+                undef_method type
+              end
+            end
+          end
+        end
+      end
     end
 
     class NotFound
@@ -103,8 +123,9 @@ module Rack
     end
 
     class Template
-      def self.[] file
-        engine.new(file).find_template
+
+      def self.[] file, config = {}
+        engine.new(file, config).find_template
       end
 
       def self.engine
@@ -115,8 +136,10 @@ module Rack
         engine == TiltTemplate
       end
 
-      def initialize(file)
+      def initialize(file, config = {})
         @file = file
+        @config = config
+        @config[:default_charset] ||= 'utf-8'
       end
 
       def mime_type
@@ -124,9 +147,9 @@ module Rack
         Mime.mime_type(ext, default_mime_type)
       end
 
-      def mime_type_with_charset(charset)
+      def mime_type_with_charset
         if (m = mime_type) =~ %r!^(text/\w+|application/(?:javascript|(xhtml\+)?xml|json))$!
-         "#{m}; charset=#{charset}"
+         "#{m}; charset=#{@config[:default_charset]}"
         else
          m
         end
@@ -136,10 +159,24 @@ module Rack
         content = render(scope, &block)
         if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
           scope.layout(false)
-          Template[layout_file].render_with_layout(scope) { content }
+          Template[layout_file, @config].render_with_layout(scope) { content }
         else
           content
         end
+      end
+
+      def call(env)
+        scope = Binding.new(env)
+        scope.response.tap do |res|
+          catch(:halt) do
+            Filter.exec(:before, scope)
+            res.write render_with_layout(scope)
+            res['Last-Modified'] ||= ::File.mtime(@file).httpdate
+            res['Content-Type']  ||= mime_type_with_charset
+            res['Cache-Control'] ||= @config[:cache_control] if @config[:cache_control]
+            Filter.exec(:after, scope)
+          end
+        end.finish
       end
 
       class TiltTemplate < Template
@@ -230,6 +267,21 @@ module Rack
       end
     end
 
+    class Filter
+
+      @@filters = { :before => [], :after => [] }
+
+      def self.filters
+        @@filters
+      end
+
+      def self.exec(type, scope)
+        filters[type].each do |filter|
+          filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
+        end
+      end
+    end
+
     class Binding
       extend Forwardable
       include CoreHelper
@@ -253,96 +305,3 @@ module Rack
 
   end
 end
-
-module Rack::ServerPages::Binding::Extra
-  require 'erb'
-  def rubyinfo
-    ERB.new(<<-RUBYINFO).result(binding)
-    <html><head>
-    <style type="text/css"><!--
-    body {background-color: #ffffff; color: #000000;}
-    body, td, th, h1, h2 {font-family: sans-serif;}
-    pre {margin: 0px; font-family: monospace;}
-    a:link {color: #000099; text-decoration: none; background-color: #ffffff;}
-    a:hover {text-decoration: underline;}
-    table {border-collapse: collapse;}
-    .center {text-align: center;}
-    .center table { margin-left: auto; margin-right: auto; text-align: left;}
-    .center th { text-align: center !important; }
-    td, th { border: 1px solid #000000; font-size: 75%; vertical-align: baseline;}
-    h1 {font-size: 150%;}
-    h2 {font-size: 125%;}
-    .p {text-align: left;}
-    .e {background-color: #ccccff; font-weight: bold; color: #000000;}
-    .h {background-color: #9999cc; font-weight: bold; color: #000000;}
-    .v {background-color: #cccccc; color: #000000;}
-    i {color: #666666; background-color: #cccccc;}
-    img {float: right; border: 0px;}
-    hr {width: 600px; background-color: #cccccc; border: 0px; height: 1px; color: #000000;}
-    //--></style>
-    <title>rubyinfo()</title>
-    </head>
-    <body>
-      <div class="center">
-        <table border="0" cellpadding="3" width="600">
-          <tr class="h">
-            <td>
-            <h1 class="p">Rack Server Pages Version <%= Rack::ServerPages::VERSION%></h1>
-            </td>
-          </tr>
-        </table>
-        <br />
-        <h2>Rack Environment</h2>
-        <table border="0" cellpadding="3" width="600">
-          <tr class="h"><th>Variable</th><th>Value</th></tr>
-          <% for key, value in env do %>
-            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
-          <% end %>
-        </table>
-        <h2>Ruby</h2>
-        <table border="0" cellpadding="3" width="600">
-          <tr><td class="e">RUBY_VERSION</td><td class="v"><%= RUBY_VERSION %></td></tr>
-          <tr><td class="e">RUBY_PATCHLEVEL</td><td class="v"><%= RUBY_PATCHLEVEL %></td></tr>
-          <tr><td class="e">RUBY_RELEASE_DATE</td><td class="v"><%= RUBY_RELEASE_DATE %></td></tr>
-          <tr><td class="e">RUBY_PLATFORM</td><td class="v"><%= RUBY_PLATFORM %></td></tr>
-        </table>
-        <h2>Environment</h2>
-        <table border="0" cellpadding="3" width="600">
-          <tr class="h"><th>Variable</th><th>Value</th></tr>
-          <% for key, value in ENV do %>
-            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
-          <% end %>
-        </table>
-        <% if defined?(Tilt) %>
-        <h2>Tilt</h2>
-        <table border="0" cellpadding="3" width="600">
-          <% for key, value in Tilt.mappings do %>
-            <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
-          <% end %>
-        </table>
-        <% else %>
-        <h2>ERB Template</h2>
-        <table border="0" cellpadding="3" width="600">
-          <tr><td class="e">extensions</td><td class="v"><%=Rack::ServerPages::Template::ERBTemplate.extensions.join(', ')%></td></tr>
-        </table>
-        <% end %>
-        <h2>Binding</h2>
-        <table border="0" cellpadding="3" width="600">
-          <tr><td class="e">methods</td><td class="v"><%= (methods - Object.methods).join(', ') %></td></tr>
-        </table>
-        <h2>License</h2>
-        <table border="0" cellpadding="3" width="600">
-        <tr class="v"><td>
-        <p>
-        MIT License
-        </p>
-        </td></tr>
-        </table><br />
-      </div>
-    </body>
-    </html>
-    RUBYINFO
-  end
-  alias phpinfo rubyinfo # just a joke :)
-end
-Rack::ServerPages::Binding.send(:include, Rack::ServerPages::Binding::Extra)
