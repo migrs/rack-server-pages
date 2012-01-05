@@ -8,7 +8,7 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-    VERSION = '0.0.2'
+    VERSION = '0.0.3-pre'
 
     def self.call(env)
       new.call(env)
@@ -23,19 +23,11 @@ module Rack
       yield @config if block_given?
       @app = app || @config.failure_app || NotFound
       @binding = Class.new(Binding)
-      @config.helpers.each do |helper|
-        if helper.kind_of? Proc
-          @binding.class_eval(&helper)
-        else
-          @binding.class_eval { include helper }
-          [:before, :after].each do |type|
-            if helper.method_defined?(type)
-              @config.filters[type] << helper.instance_method(type)
-              @binding.class_eval { undef :"#{type}" }
-            end
-          end
-        end
-      end
+
+      require ::File.dirname(__FILE__) + "/server_pages/sample_helper"
+      @config.helpers Rack::ServerPages::SampleHelper
+
+      @binding.setup(@config.helpers, @config.filters)
     end
 
     def call(env)
@@ -293,6 +285,22 @@ module Rack
 
       def_delegators :request, :env, :params, :session, :cookies, :logger
       def_delegators :response, :headers, :set_cookies, :delete_cookie
+
+      def self.setup(helpers, filters)
+        helpers.each do |helper|
+          if helper.kind_of? Proc
+            class_eval(&helper)
+          else
+            class_eval { include helper }
+            [:before, :after].each do |type|
+              if helper.method_defined?(type)
+                filters[type] << helper.instance_method(type)
+                class_eval { undef :"#{type}" }
+              end
+            end
+          end
+        end
+      end
 
       def initialize(env)
         @request  = Rack::Request.new(env)
