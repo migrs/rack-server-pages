@@ -1,6 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'ruby-debug' rescue nil
+begin
+require 'ruby-debug'
 require 'tapp'
+rescue LoadError
+end
 
 describe 'Rack::ServerPages' do
   describe 'Basic requests' do
@@ -11,14 +14,14 @@ describe 'Rack::ServerPages' do
     should_be_ok        '/'
     should_be_not_found '/hoge'
 
-#    should_be_not_found '/inf'
-#    should_be_ok        '/info'
-#    should_be_not_found '/info/'
-#    should_be_ok        '/info.php'
-#    should_be_ok        '/info.php?a=3'
-#    should_be_not_found '/info.'
-#    should_be_not_found '/info.p'
-#    should_be_not_found '/info.php/'
+    should_be_not_found '/inf'
+    should_be_ok        '/info'
+    should_be_not_found '/info/'
+    should_be_ok        '/info.php'
+    should_be_ok        '/info.php?a=3'
+    should_be_not_found '/info.'
+    should_be_not_found '/info.p'
+    should_be_not_found '/info.php/'
 
     should_be_not_found '/example'
     should_be_not_found '/examples'

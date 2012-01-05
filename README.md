@@ -7,6 +7,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://secure.travis-ci.org/migrs/rack-server-pages.png)](http://travis-ci.org/migrs/rack-server-pages)
+[![Dependency Status](https://gemnasium.com/migrs/rack-server-pages.png?travis)](https://gemnasium.com/migrs/rack-server-pages)
 
 ## Features
 
@@ -16,6 +17,8 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - Tilt support (optional)
 - Include a partial template
 - Layout template
+- Before/After filters
+- Include helpers
 - Integrate with any rack applications (Rails, Sinatra, etc...)
 - Extremely simple and easy to use!
 
@@ -385,9 +388,7 @@ And create `public/info.php` :)
 ## ToDo
 
 ### Implements
-- Before/After filter
 - Error handling
-- Support Helpers
 - Static file generator (for designer)
 
 ### Tasks
