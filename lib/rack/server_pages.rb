@@ -76,43 +76,37 @@ module Rack
       end
 
       hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app
+      attr_reader :filters
 
       def initialize
         super
         self[:default_charset] ||= 'utf-8'
         self[:view_path] ||= %w(views public)
+        @helpers = []
+        @filters = { :before => [], :after => [] }
       end
 
       def view_paths
         (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
       end
 
-      def add_filter(type, fn = nil, &block)
-        Filter.filters[type] << block if block_given?
-        Filter.filters[type] << fn if fn
+      def before(*fn, &block)
+        add_filter(:before, *fn, &block)
       end
 
-      def before(fn = nil, &block)
-        add_filter(:before, fn, &block)
+      def after(*fn, &block)
+        add_filter(:after, *fn, &block)
       end
 
-      def after(fn = nil, &block)
-        add_filter(:after, fn, &block)
+      def add_filter(type, *args, &block)
+        @filters[type] << block if block_given?
+        @filters[type].concat args unless args.empty?
       end
 
-      def helpers(*extensions, &block)
-        Binding.class_eval(&block) if block_given?
-        extensions.each do |extension|
-          Binding.class_eval do
-            include extension
-            [:before, :after].each do |type|
-              if extension.method_defined?(type)
-                Filter.filters[type] << extension.instance_method(type)
-                undef_method type
-              end
-            end
-          end
-        end
+      def helpers(*args, &block)
+        @helpers << block if block_given?
+        @helpers.concat args unless args.empty?
+        @helpers
       end
     end
 
@@ -166,15 +160,35 @@ module Rack
       end
 
       def call(env)
+        # TODO: refactor
         scope = Binding.new(env)
+        p @config.helpers
+        @config.helpers.each do |helper|
+          if helper.class == Proc
+            scope.instance_exec(&helper)
+          else
+            scope.extend helper
+            [:before, :after].each do |type|
+              if helper.method_defined?(type)
+                @config.filters[type] << helper.instance_method(type)
+                scope.instance_eval { undef :"#{type}" }
+              end
+            end
+          end
+        end
         scope.response.tap do |res|
           catch(:halt) do
-            Filter.exec(:before, scope)
+            p @config.filters
+            @config.filters[:before].each do |filter|
+              filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
+            end
             res.write render_with_layout(scope)
             res['Last-Modified'] ||= ::File.mtime(@file).httpdate
             res['Content-Type']  ||= mime_type_with_charset
             res['Cache-Control'] ||= @config[:cache_control] if @config[:cache_control]
-            Filter.exec(:after, scope)
+            @config.filters[:after].each do |filter|
+              filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
+            end
           end
         end.finish
       end
@@ -263,22 +277,7 @@ module Rack
       end
 
       def url(path = "")
-        env['SCRIPT_NAME'] + (path.to_s[0,1]!='/'?'/':'') + path.to_s
-      end
-    end
-
-    class Filter
-
-      @@filters = { :before => [], :after => [] }
-
-      def self.filters
-        @@filters
-      end
-
-      def self.exec(type, scope)
-        filters[type].each do |filter|
-          filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
-        end
+        env['SCRIPT_NAME'] + (path.to_s[0,1]!= '/' ? '/' : '') + path.to_s
       end
     end
 
