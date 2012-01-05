@@ -22,6 +22,20 @@ module Rack
       @config = Config.new(*options)
       yield @config if block_given?
       @app = app || @config.failure_app || NotFound
+      @binding = Class.new(Binding)
+      @config.helpers.each do |helper|
+        if helper.kind_of? Proc
+          @binding.class_eval(&helper)
+        else
+          @binding.class_eval { include helper }
+          [:before, :after].each do |type|
+            if helper.method_defined?(type)
+              @config.filters[type] << helper.instance_method(type)
+              @binding.class_eval { undef :"#{type}" }
+            end
+          end
+        end
+      end
     end
 
     def call(env)
@@ -36,13 +50,32 @@ module Rack
       unless files.nil? or files.empty?
         file = select_template_file(files)
 
-        if template = Template[file, @config]
-          template.call(env)
+        if template = Template[file]
+          render(template, @binding.new(env))
         else
           StaticFile.new(file, @config.cache_control).call(env)
         end
       else
         @app.call(env)
+      end
+    end
+
+    def render(template, scope)
+      scope.response.tap do |res|
+        catch(:halt) do
+          invoke_filter(:before, scope)
+          res.write template.render_with_layout(scope)
+          res['Last-Modified'] ||= ::File.mtime(template.file).httpdate
+          res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
+          res['Cache-Control'] ||= @config.cache_control if @config.cache_control
+          invoke_filter(:after, scope)
+        end
+      end.finish
+    end
+
+    def invoke_filter(type, scope)
+      @config.filters[type].each do |filter|
+        filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
       end
     end
 
@@ -118,22 +151,26 @@ module Rack
 
     class Template
 
-      def self.[] file, config = {}
-        engine.new(file, config).find_template
+      def self.[] file
+        engine.new(file).find_template
       end
 
       def self.engine
-        defined?(Tilt) ? TiltTemplate : ERBTemplate
+        tilt? ? TiltTemplate : ERBTemplate
       end
 
       def self.tilt?
-        engine == TiltTemplate
+        (@@use_tilt ||= defined?(Tilt)) and defined?(Tilt)
       end
 
-      def initialize(file, config = {})
+      def self.tilt= bool
+        @@use_tilt = !!bool
+      end
+
+      attr_reader :file
+
+      def initialize(file)
         @file = file
-        @config = config
-        @config[:default_charset] ||= 'utf-8'
       end
 
       def mime_type
@@ -141,9 +178,9 @@ module Rack
         Mime.mime_type(ext, default_mime_type)
       end
 
-      def mime_type_with_charset
+      def mime_type_with_charset(charset = 'utf-8')
         if (m = mime_type) =~ %r!^(text/\w+|application/(?:javascript|(xhtml\+)?xml|json))$!
-         "#{m}; charset=#{@config[:default_charset]}"
+         "#{m}; charset=#{charset}"
         else
          m
         end
@@ -153,44 +190,10 @@ module Rack
         content = render(scope, &block)
         if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
           scope.layout(false)
-          Template[layout_file, @config].render_with_layout(scope) { content }
+          Template[layout_file].render_with_layout(scope) { content }
         else
           content
         end
-      end
-
-      def call(env)
-        # TODO: refactor
-        scope = Binding.new(env)
-        p @config.helpers
-        @config.helpers.each do |helper|
-          if helper.class == Proc
-            scope.instance_exec(&helper)
-          else
-            scope.extend helper
-            [:before, :after].each do |type|
-              if helper.method_defined?(type)
-                @config.filters[type] << helper.instance_method(type)
-                scope.instance_eval { undef :"#{type}" }
-              end
-            end
-          end
-        end
-        scope.response.tap do |res|
-          catch(:halt) do
-            p @config.filters
-            @config.filters[:before].each do |filter|
-              filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
-            end
-            res.write render_with_layout(scope)
-            res['Last-Modified'] ||= ::File.mtime(@file).httpdate
-            res['Content-Type']  ||= mime_type_with_charset
-            res['Cache-Control'] ||= @config[:cache_control] if @config[:cache_control]
-            @config.filters[:after].each do |filter|
-              filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
-            end
-          end
-        end.finish
       end
 
       class TiltTemplate < Template
@@ -246,9 +249,9 @@ module Rack
         halt
       end
 
-      def partial(file)
+      def partial(file, &block)
         if tpl_file = Dir["#{file}{.*,}"].first and template = Template[tpl_file]
-          template.render(self)
+          template.render(self, &block)
         else
           IO.read(file)
         end
@@ -301,6 +304,5 @@ module Rack
         binding
       end
     end
-
   end
 end
