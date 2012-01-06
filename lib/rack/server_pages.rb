@@ -8,7 +8,7 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-    VERSION = '0.0.3.pre'
+    VERSION = '0.0.3'
 
     def self.call(env)
       new.call(env)
