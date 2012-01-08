@@ -1,0 +1,3 @@
+<% Rack::ServerPages::Template.tilt? ? layout('public/_layout.html') : headers['Content-Type'] = 'text/plain' %>
+<% @title = 'CHANGES.md' %>
+<%= partial 'CHANGES.md' %>

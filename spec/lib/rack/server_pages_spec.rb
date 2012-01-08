@@ -79,4 +79,12 @@ describe 'Rack::ServerPages' do
       end
     end
   end
+
+  describe 'Configuration' do
+    it 'test' do
+      mock_app do
+        run Rack::ServerPages
+      end
+    end
+  end
 end

@@ -8,6 +8,7 @@ require 'slim'
 
 # .php as ERB template :)
 Rack::ServerPages::Template::ERBTemplate.extensions << 'php' # ERBTemplate
+#Rack::ServerPages::Template.use_tilt false
 Tilt.register Tilt::ERBTemplate, 'php' # TiltTemplate
 
 module SampleHelper

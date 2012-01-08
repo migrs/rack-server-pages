@@ -8,7 +8,7 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
 
     def self.call(env)
       new.call(env)
@@ -22,19 +22,17 @@ module Rack
       @config = Config.new(*options)
       yield @config if block_given?
       @app = app || @config.failure_app || NotFound
-      @binding = Class.new(Binding)
 
       require ::File.dirname(__FILE__) + "/server_pages/sample_helper"
       @config.helpers Rack::ServerPages::SampleHelper
 
-      @binding.setup(@config.helpers, @config.filters)
+      @config.filter.merge_from_helpers(@config.helpers)
+      @binding = Binding.extended_class(@config.helpers)
     end
 
     def call(env)
-      serving(env)
+      dup.serving(env)
     end
-
-  private
 
     def serving(env)
       files = find_template_files *evalute_path_info(env['PATH_INFO']) rescue nil
@@ -52,23 +50,19 @@ module Rack
       end
     end
 
+  private
+
     def render(template, scope)
       scope.response.tap do |res|
         catch(:halt) do
-          invoke_filter(:before, scope)
+          @config.filter.invoke(:before, scope)
           res.write template.render_with_layout(scope)
           res['Last-Modified'] ||= ::File.mtime(template.file).httpdate
           res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
           res['Cache-Control'] ||= @config.cache_control if @config.cache_control
-          invoke_filter(:after, scope)
+          @config.filter.invoke(:after, scope)
         end
       end.finish
-    end
-
-    def invoke_filter(type, scope)
-      @config.filters[type].each do |filter|
-        filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
-      end
     end
 
     def evalute_path_info(path)
@@ -92,7 +86,59 @@ module Rack
       files.first
     end
 
+    class Filter
+      TYPES = [:before, :after]
+      DEFAULT = Hash[[TYPES, [[]]*TYPES.size].transpose]
+
+      TYPES.each do |type|
+        define_method(type) {|*fn, &block| add_filter(type, *fn, &block) }
+      end
+
+      def initialize(filters = DEFAULT)
+        @filters = filters
+      end
+
+      def [] type
+        @filters[type]
+      end
+
+      def merge(other)
+        TYPES.each { |type| self[type].concat other[type] }
+      end
+
+      def merge_from_helpers(helpers)
+        merge(self.class.extract_filters_from_helpers(helpers))
+      end
+
+      def add_filter(type, *args, &block)
+        self[type] << block if block_given?
+        self[type].concat args unless args.empty?
+      end
+
+      def invoke(type, scope)
+        self[type].each do |filter|
+          filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
+        end
+      end
+
+      def self.extract_filters_from_helpers(helpers)
+        new.tap do |filter|
+          helpers.each do |helper|
+            next unless helper.is_a? Module
+            TYPES.each do |type|
+              if helper.method_defined?(type)
+                filter[type] << helper.instance_method(type)
+                helper.class_eval { undef :"#{type}" }
+              end
+            end
+          end
+        end
+      end
+    end
+
     class Config < Hash
+      extend Forwardable
+
       def self.hash_accessor(*names)
         names.each do |name|
           define_method("#{name}=") { |v| self[name] = v }
@@ -101,32 +147,21 @@ module Rack
       end
 
       hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app
-      attr_reader :filters
+      attr_reader :filter
+      def_delegators :filter, :add_filter, *Filter::TYPES
 
       def initialize
         super
         self[:default_charset] ||= 'utf-8'
         self[:view_path] ||= %w(views public)
         @helpers = []
-        @filters = { :before => [], :after => [] }
+        @filter  = Filter.new
       end
 
       def view_paths
         (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
       end
 
-      def before(*fn, &block)
-        add_filter(:before, *fn, &block)
-      end
-
-      def after(*fn, &block)
-        add_filter(:after, *fn, &block)
-      end
-
-      def add_filter(type, *args, &block)
-        @filters[type] << block if block_given?
-        @filters[type].concat args unless args.empty?
-      end
 
       def helpers(*args, &block)
         @helpers << block if block_given?
@@ -152,11 +187,11 @@ module Rack
       end
 
       def self.tilt?
-        (@@use_tilt ||= defined?(Tilt)) and defined?(Tilt)
+        @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt and defined?(Tilt)
       end
 
-      def self.tilt= bool
-        @@use_tilt = !!bool
+      def self.use_tilt bool = true
+        @use_tilt = !!bool
       end
 
       attr_reader :file
@@ -286,19 +321,13 @@ module Rack
       def_delegators :request, :env, :params, :session, :cookies, :logger
       def_delegators :response, :headers, :set_cookies, :delete_cookie
 
-      def self.setup(helpers, filters)
+      def self.extended_class(helpers)
+        Class.new(self).tap { |k| k.setup(helpers) }
+      end
+
+      def self.setup(helpers)
         helpers.each do |helper|
-          if helper.kind_of? Proc
-            class_eval(&helper)
-          else
-            class_eval { include helper }
-            [:before, :after].each do |type|
-              if helper.method_defined?(type)
-                filters[type] << helper.instance_method(type)
-                class_eval { undef :"#{type}" }
-              end
-            end
-          end
+          helper.kind_of?(Proc) ? class_eval(&helper) : class_eval { include helper }
         end
       end
 

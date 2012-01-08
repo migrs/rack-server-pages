@@ -141,6 +141,89 @@ with block
 - failure\_app
   - default: nil
 
+### Helpers
+
+with helpers block
+
+    use Rack::ServerPages do |config|
+      config.helpers do
+        def three_times(name)
+          "#{([name.to_s]*3).join(' ')}!!"
+        end
+      end
+    end
+
+in view file (erb)
+    <%= three_times('blah') %>
+
+with helper module
+
+    module SampleHelper
+      def three_times(name)
+        "#{([name.to_s]*3).join(' ')}!!"
+      end
+    end
+
+    use Rack::ServerPages do |config|
+      config.helpers SampleHelper
+    end
+
+with procs
+
+    help1 = proc do
+      def three_times(name)
+        "#{([name.to_s]*3).join(' ')}!!"
+      end
+    end
+
+    help2 = proc {...}
+
+    use Rack::ServerPages do |config|
+      config.helpers help1, help2
+    end
+
+### Filters
+
+with before/after block
+
+    use Rack::ServerPages do |config|
+      config.before do
+        @title = 'Hello!'
+      end
+
+      config.after do
+        logger.debug 'xxxx'
+      end
+    end
+
+with procs
+    proc1 = proc { @name = 'Jonny' }
+    proc2 = proc { @age = 24 }
+    proc3 = proc { logger.debug 'xxxx' }
+
+    use Rack::ServerPages do |config|
+      config.before proc1, proc2
+      config.after proc3
+    end
+
+if you define before/after method in helper module, it will be treated as filters
+
+    module SampleHelper
+      def before
+        @title = 'Hello!'
+      end
+
+      def three_times(name)
+        "#{([name.to_s]*3).join(' ')}!!"
+      end
+    end
+
+    use Rack::ServerPages do |config|
+      config.helpers SampleHelper
+    end
+
+    <%= three_times(@title) %>
+
 ## Tilt support
 [Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.  
 If you want to use Tilt, just `require 'tilt'` and require template engine libraries that you want.
@@ -403,4 +486,4 @@ And create `public/info.php` :)
   - Benchmark
 
 ## License
-[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2011 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and distributed under the [MIT license](http://www.opensource.org/licenses/mit-license).
+[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2012 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and distributed under the [MIT license](http://www.opensource.org/licenses/mit-license).

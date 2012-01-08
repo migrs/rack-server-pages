@@ -7,7 +7,6 @@ module Rack::ServerPages::SampleHelper
     body {background-color: #ffffff; color: #000000;}
     body, td, th, h1, h2 {font-family: sans-serif;}
     pre {margin: 0px; font-family: monospace;}
-    a:link {color: #000099; text-decoration: none; background-color: #ffffff;}
     a:hover {text-decoration: underline;}
     table {border-collapse: collapse;}
     .center {text-align: center;}
@@ -72,13 +71,14 @@ module Rack::ServerPages::SampleHelper
         <% end %>
         <h2>Binding</h2>
         <table border="0" cellpadding="3" width="600">
+          <tr><td class="e">variables</td><td class="v"><%= (instance_variables).join(', ') %></td></tr>
           <tr><td class="e">methods</td><td class="v"><%= (methods - Object.methods).join(', ') %></td></tr>
         </table>
         <h2>License</h2>
         <table border="0" cellpadding="3" width="600">
         <tr class="v"><td>
         <p>
-        MIT License
+        <a href="http://github.com/migrs/rack-server-pages">rack-server-pages</a> is Copyright (c) 2012 <a href="http://github.com/migrs">Masato Igarashi</a>(@<a href="http://twitter.com/migrs">migrs</a>) and distributed under the <a href="http://www.opensource.org/licenses/mit-license">MIT license</a>.
         </p>
         </td></tr>
         </table><br />
