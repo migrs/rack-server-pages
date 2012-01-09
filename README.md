@@ -154,6 +154,7 @@ with helpers block
     end
 
 in view file (erb)
+
     <%= three_times('blah') %>
 
 with helper module
@@ -197,6 +198,7 @@ with before/after block
     end
 
 with procs
+
     proc1 = proc { @name = 'Jonny' }
     proc2 = proc { @age = 24 }
     proc3 = proc { logger.debug 'xxxx' }
@@ -221,6 +223,8 @@ if you define before/after method in helper module, it will be treated as filter
     use Rack::ServerPages do |config|
       config.helpers SampleHelper
     end
+
+in view file
 
     <%= three_times(@title) %>
 

@@ -10,12 +10,14 @@ module Rack
   class ServerPages
     VERSION = '0.0.4'
 
-    def self.call(env)
-      new.call(env)
-    end
+    class << self
+      def call(env)
+        new.call(env)
+      end
 
-    def self.[](options={}, &block)
-      new(nil, options, &block)
+      def [](options={}, &block)
+        new(nil, options, &block)
+      end
     end
 
     def initialize(app = nil, options = {})
@@ -50,48 +52,49 @@ module Rack
       end
     end
 
-  private
-
-    def render(template, scope)
-      scope.response.tap do |res|
-        catch(:halt) do
-          @config.filter.invoke(:before, scope)
-          res.write template.render_with_layout(scope)
-          res['Last-Modified'] ||= ::File.mtime(template.file).httpdate
-          res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
-          res['Cache-Control'] ||= @config.cache_control if @config.cache_control
-          @config.filter.invoke(:after, scope)
-        end
-      end.finish
-    end
-
-    def evalute_path_info(path)
-      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
-        m[1,3] # dir, file, ext
+    module PrivateMethods private
+      def render(template, scope)
+        scope.response.tap do |res|
+          catch(:halt) do
+            @config.filter.invoke(scope) do
+              res.write template.render_with_layout(scope)
+              res['Last-Modified'] ||= ::File.mtime(template.file).httpdate
+              res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
+              res['Cache-Control'] ||= @config.cache_control if @config.cache_control
+            end
+          end
+        end.finish
       end
-    end
 
-    def find_template_files(dir, file, ext)
-      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
-      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
-      #Dir[path].select{|s|s.include?('.')}
-      [].tap do |files| # universal way
-        @config.view_paths.each do |root|
-          files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
+      def evalute_path_info(path)
+        if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
+          m[1,3] # dir, file, ext
         end
       end
-    end
 
-    def select_template_file(files)
-      files.first
+      def find_template_files(dir, file, ext)
+        #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
+        #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
+        #Dir[path].select{|s|s.include?('.')}
+        [].tap do |files| # universal way
+          @config.view_paths.each do |root|
+            files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
+          end
+        end
+      end
+
+      def select_template_file(files)
+        files.first
+      end
     end
+    include PrivateMethods
 
     class Filter
       TYPES = [:before, :after]
       DEFAULT = Hash[[TYPES, [[]]*TYPES.size].transpose]
 
       TYPES.each do |type|
-        define_method(type) {|*fn, &block| add_filter(type, *fn, &block) }
+        define_method(type) {|*fn, &block| add(type, *fn, &block) }
       end
 
       def initialize(filters = DEFAULT)
@@ -110,14 +113,16 @@ module Rack
         merge(self.class.extract_filters_from_helpers(helpers))
       end
 
-      def add_filter(type, *args, &block)
+      def add(type, *args, &block)
         self[type] << block if block_given?
         self[type].concat args unless args.empty?
       end
 
-      def invoke(type, scope)
-        self[type].each do |filter|
-          filter.respond_to?(:bind) ? filter.bind(scope).call : scope.instance_exec(&filter)
+      def invoke(scope, type = nil)
+        if block_given?
+          invoke(scope, TYPES.first); yield scope; invoke(scope, TYPES.last)
+        else
+          self[type].each { |f| f.respond_to?(:bind) ? f.bind(scope).call : scope.instance_exec(&f) }
         end
       end
 
@@ -148,7 +153,7 @@ module Rack
 
       hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app
       attr_reader :filter
-      def_delegators :filter, :add_filter, *Filter::TYPES
+      def_delegators :filter, *Filter::TYPES
 
       def initialize
         super
@@ -162,7 +167,6 @@ module Rack
         (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
       end
 
-
       def helpers(*args, &block)
         @helpers << block if block_given?
         @helpers.concat args unless args.empty?
@@ -170,28 +174,24 @@ module Rack
       end
     end
 
-    class NotFound
-      def self.call(env)
-        Rack::Response.new(["Not Found: #{env['REQUEST_PATH']}"], 404).finish
-      end
-    end
-
     class Template
 
-      def self.[] file
-        engine.new(file).find_template
-      end
+      class << self
+        def [] file
+          engine.new(file).find_template
+        end
 
-      def self.engine
-        tilt? ? TiltTemplate : ERBTemplate
-      end
+        def engine
+          tilt? ? TiltTemplate : ERBTemplate
+        end
 
-      def self.tilt?
-        @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt and defined?(Tilt)
-      end
+        def tilt?
+          @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt and defined?(Tilt)
+        end
 
-      def self.use_tilt bool = true
-        @use_tilt = !!bool
+        def use_tilt bool = true
+          @use_tilt = !!bool
+        end
       end
 
       attr_reader :file
@@ -270,6 +270,12 @@ module Rack
       end
     end
 
+    class NotFound
+      def self.call(env)
+        Rack::Response.new(["Not Found: #{env['REQUEST_PATH']}"], 404).finish
+      end
+    end
+
     module CoreHelper
       def redirect(target, status=302)
         response.redirect(target, status)
@@ -321,13 +327,15 @@ module Rack
       def_delegators :request, :env, :params, :session, :cookies, :logger
       def_delegators :response, :headers, :set_cookies, :delete_cookie
 
-      def self.extended_class(helpers)
-        Class.new(self).tap { |k| k.setup(helpers) }
-      end
+      class << self
+        def extended_class(helpers)
+          Class.new(self).tap { |k| k.setup(helpers) }
+        end
 
-      def self.setup(helpers)
-        helpers.each do |helper|
-          helper.kind_of?(Proc) ? class_eval(&helper) : class_eval { include helper }
+        def setup(helpers)
+          helpers.each do |helper|
+            helper.is_a?(Module) ? class_eval { include helper } : class_eval(&helper)
+          end
         end
       end
 
