@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 require 'rack'
-require 'time'
 require 'rack/utils'
 require 'rack/mime'
 require 'rack/logger'
+require 'time'
 require 'forwardable'
 
 module Rack
@@ -297,18 +297,12 @@ module Rack
       end
 
       def halt(*args)
-        case args[0]
-        when String
-          response.body = [args[0]]
-        when Fixnum
+        if args[0].kind_of? Fixnum
+          response.headers.merge! args[1] if (a1_is_h = args[1].kind_of? Hash)
+          response.body = [(a1_is_h) ? args[2] : args[1]]
           response.status = args[0]
-          case args[1]
-          when Hash
-            response.headers.merge! args[1]
-            response.body = [args[2]]
-          else
-            response.body = [args[1]]
-          end
+        else
+          response.body = [args[0]]
         end
         throw :halt
       end
