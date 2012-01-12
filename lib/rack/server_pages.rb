@@ -43,7 +43,7 @@ module Rack
         file = select_template_file(files)
 
         if template = Template[file]
-          render(template, @binding.new(env))
+          server_page(template).call(env)
         else
           StaticFile.new(file, @config.cache_control).call(env)
         end
@@ -52,42 +52,43 @@ module Rack
       end
     end
 
-    module PrivateMethods private
-      def render(template, scope)
-        scope.response.tap do |res|
-          catch(:halt) do
-            @config.filter.invoke(scope) do
-              res.write template.render_with_layout(scope)
-              res['Last-Modified'] ||= ::File.mtime(template.file).httpdate
-              res['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
-              res['Cache-Control'] ||= @config.cache_control if @config.cache_control
-            end
-          end
-        end.finish
-      end
-
-      def evalute_path_info(path)
-        if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
-          m[1,3] # dir, file, ext
-        end
-      end
-
-      def find_template_files(dir, file, ext)
-        #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
-        #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
-        #Dir[path].select{|s|s.include?('.')}
-        [].tap do |files| # universal way
-          @config.view_paths.each do |root|
-            files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
-          end
-        end
-      end
-
-      def select_template_file(files)
-        files.first
+    def evalute_path_info(path)
+      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
+        m[1,3] # dir, file, ext
       end
     end
-    include PrivateMethods
+
+    def find_template_files(dir, file, ext)
+      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
+      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
+      #Dir[path].select{|s|s.include?('.')}
+      [].tap do |files| # universal way
+        @config.view_paths.each do |root|
+          files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
+        end
+      end
+    end
+
+    def select_template_file(files)
+      files.first
+    end
+
+    def build_response(template, scope)
+      scope.response.tap do |response|
+        response.write template.render_with_layout(scope)
+        response['Last-Modified'] ||= ::File.mtime(template.file).httpdate
+        response['Content-Type']  ||= template.mime_type_with_charset(@config.default_charset)
+        response['Cache-Control'] ||= @config.cache_control if @config.cache_control
+      end
+    end
+
+    def server_page(template)
+      lambda do |env|
+        @binding.new(env).tap do |scope|
+          catch(:halt) { @config.filter.invoke(scope) { build_response(template, scope) }}
+        end.response.finish
+      end
+    end
 
     class Filter
       TYPES = [:before, :after]
