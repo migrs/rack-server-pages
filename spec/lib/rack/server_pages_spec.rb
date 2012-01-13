@@ -41,7 +41,7 @@ describe 'Rack::ServerPages' do
 
   describe 'Rack::ServerPages private methods' do
     describe '#evalute_path_info' do
-      subject { app.new.__send__(:evalute_path_info, path_info) }
+      subject { m = app.new.instance_variable_get(:@path_regex).match(path_info); m[1,3] if m }
 
       context '/aaa/bbb.erb' do
         let(:path_info) { '/aaa/bbb.erb' }

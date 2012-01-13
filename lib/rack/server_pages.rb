@@ -30,6 +30,8 @@ module Rack
 
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
+
+      @path_regex = %r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!
     end
 
     def call(env)
@@ -37,34 +39,19 @@ module Rack
     end
 
     def serving(env)
-      files = find_template_files *evalute_path_info(env['PATH_INFO']) rescue nil
-
+      files = find_template_files(env['PATH_INFO'])
       unless files.nil? or files.empty?
         file = select_template_file(files)
-
-        if template = Template[file]
-          server_page(template).call(env)
-        else
-          StaticFile.new(file, @config.cache_control).call(env)
-        end
+        (tpl = Template[file]) ? server_page(tpl) : StaticFile.new(file, @config.cache_control)
       else
-        @app.call(env)
-      end
+        @app
+      end.call(env)
     end
 
-    def evalute_path_info(path)
-      if m = path.match(%r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9]\w*)?(\.\w+)?(\.\w+)?$!)
-        m[1,3] # dir, file, ext
-      end
-    end
-
-    def find_template_files(dir, file, ext)
-      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"}.join("\0") # Ruby 1.8
-      #path = @config.view_paths.map{|root|"#{root}/#{dir}#{file||'index'}#{ext}{.*,}"} # Ruby 1.9
-      #Dir[path].select{|s|s.include?('.')}
-      [].tap do |files| # universal way
-        @config.view_paths.each do |root|
-          files.concat Dir["#{root}/#{dir}#{file||'index'}#{ext}{.*,}"].select{|s|s.include?('.')}
+    def find_template_files(path_info)
+      if m = path_info.match(@path_regex)
+        @config.view_paths.inject([]) do |files, path|
+          files.concat Dir["#{path}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"].select{|s|s.include?('.')}
         end
       end
     end
