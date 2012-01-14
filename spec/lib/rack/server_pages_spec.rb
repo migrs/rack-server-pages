@@ -77,6 +77,11 @@ describe 'Rack::ServerPages' do
         let(:path_info) { '/' }
         it { should eq [nil, nil, nil] }
       end
+
+      context path = '/aaa/bbb/AB-c.182-d.min.js' do
+        let(:path_info) { path }
+        it { should eq ['aaa/bbb/', 'AB-c.182-d.min', '.js'] }
+      end
     end
   end
 
