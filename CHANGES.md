@@ -1,13 +1,14 @@
 CHANGES
 =======
 
-### 0.0.4 / Not Yet Released
+### [0.0.4](https://github.com/migrs/rack-server-pages/tree/v0.0.4) / 2012-01-15
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.3...master)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.3...v0.0.4)
 
   * Enhancement
     - Thread safety
     - Add instance variables info in `rubyinfo`
+    - Better PATH\_INFO parsing
 
   * Bufix
     - Didn't work `Rack::ServerPages::Template.tilt=`
