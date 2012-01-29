@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "rack-server-pages"
+require "rack-server-pages/version"
 
 Gem::Specification.new do |s|
   s.name        = "rack-server-pages"
@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{Rack middleware and appilcation for serving dynamic pages in very simple way.
                      There are no controllers and no models, just only views like a asp, jsp and php!}
 
-  s.rubyforge_project = "rack-server-pages"
+  #s.rubyforge_project = "rack-server-pages"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

@@ -2,7 +2,7 @@
 require 'rack/test'
 require 'tapp'
 require 'simplecov'
-require File.dirname(__FILE__) + '/../lib/rack/server_pages'
+require 'rack-server-pages'
 SimpleCov.start
 
 RSpec.configure do |conf|

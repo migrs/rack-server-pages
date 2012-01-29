@@ -1,7 +1,7 @@
 source :rubygems
 
+#gemspec
 gem 'rack'
-#gemspec #didn't work in heroku
 
 group :development do
   gem 'rake'

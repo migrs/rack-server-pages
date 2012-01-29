@@ -1,1 +1,2 @@
-require File.dirname(__FILE__) + "/rack/server_pages"
+require 'rack/server_pages'
+require 'rack-server-pages/version'

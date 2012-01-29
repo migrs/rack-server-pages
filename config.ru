@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'bundler/setup'
-require './lib/rack/server_pages'
+$:.unshift File.dirname(__FILE__) + '/lib'
+require 'rack-server-pages'
 
 # Tilt settings
 require 'tilt'

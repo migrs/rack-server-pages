@@ -8,7 +8,6 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-    VERSION = '0.0.4'
 
     class << self
       def call(env)
@@ -259,8 +258,12 @@ module Rack
     end
 
     class NotFound
+      def self.[](file)
+        ::File.file?(file) ? proc { Rack::Response.new([::File.read(file)], 404).finish } : self
+      end
+
       def self.call(env)
-        Rack::Response.new(["Not Found: #{env['REQUEST_PATH']}"], 404).finish
+        Rack::Response.new(["Not Found: #{env['PATH_INFO']}"], 404).finish
       end
     end
 
