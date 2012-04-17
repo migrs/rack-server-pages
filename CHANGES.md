@@ -1,9 +1,9 @@
 CHANGES
 =======
 
-### [0.0.5](https://github.com/migrs/rack-server-pages/tree/master) / Not Yet Released
+### [0.0.5](https://github.com/migrs/rack-server-pages/tree/v0.0.5) / 2012-03-18
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.4...master)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.4...v0.0.5)
 
   * Feature
     - Handle exceptions
