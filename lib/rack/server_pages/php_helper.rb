@@ -1,4 +1,4 @@
-module Rack::ServerPages::SampleHelper
+module Rack::ServerPages::PHPHelper
   require 'erb'
   def rubyinfo
     ERB.new(<<-RUBYINFO).result(binding)
