@@ -77,15 +77,13 @@ module Rack
     end
 
     class Filter
-      TYPES = [:before, :after]
-      DEFAULT = Hash[[TYPES, [[]]*TYPES.size].transpose]
-
+      TYPES = [:before, :after, :on_error]
       TYPES.each do |type|
         define_method(type) {|*fn, &block| add(type, *fn, &block) }
       end
 
-      def initialize(filters = DEFAULT)
-        @filters = filters
+      def initialize
+        @filters = Hash[[TYPES, Array.new(TYPES.size) {[]}].transpose]
       end
 
       def [] type
