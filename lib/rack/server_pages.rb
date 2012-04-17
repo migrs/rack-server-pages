@@ -71,7 +71,22 @@ module Rack
     def server_page(template)
       lambda do |env|
         @binding.new(env).tap do |scope|
-          catch(:halt) { @config.filter.invoke(scope) { build_response(template, scope) }}
+          catch(:halt) do
+            begin
+              @config.filter.invoke(scope, :before)
+              build_response(template, scope)
+            rescue
+              if @config.show_exceptions?
+                raise $!
+              else
+                scope.response.status = 500
+                scope.response['Content-Type'] ||= "text/html"
+                @config.filter.invoke(scope, :on_error)
+              end
+            ensure
+              @config.filter.invoke(scope, :after)
+            end
+          end
         end.response.finish
       end
     end
@@ -91,7 +106,7 @@ module Rack
       end
 
       def merge(other)
-        TYPES.each { |type| self[type].concat other[type] }
+        TYPES.each { |type| @filters[type].concat other[type] }
       end
 
       def merge_from_helpers(helpers)
@@ -99,16 +114,12 @@ module Rack
       end
 
       def add(type, *args, &block)
-        self[type] << block if block_given?
-        self[type].concat args unless args.empty?
+        @filters[type] << block if block_given?
+        @filters[type].concat args unless args.empty?
       end
 
-      def invoke(scope, type = nil)
-        if block_given?
-          invoke(scope, TYPES.first); yield scope; invoke(scope, TYPES.last)
-        else
-          self[type].each { |f| f.respond_to?(:bind) ? f.bind(scope).call : scope.instance_exec(&f) }
-        end
+      def invoke(scope, type)
+        @filters[type].each { |f| f.respond_to?(:bind) ? f.bind(scope).call : scope.instance_exec(&f) }
       end
 
       def self.extract_filters_from_helpers(helpers)
@@ -136,8 +147,10 @@ module Rack
         end
       end
 
-      hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app
+      hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app, :show_exceptions
+
       attr_reader :filter
+
       def_delegators :filter, *Filter::TYPES
 
       def initialize
@@ -146,6 +159,14 @@ module Rack
         self[:view_path] ||= %w(views public)
         @helpers = []
         @filter  = Filter.new
+      end
+
+      def show_exceptions?
+        if self[:show_exceptions].nil?
+          ENV['RACK_ENV'].nil? or (ENV['RACK_ENV'] == 'development')
+        else
+          self[:show_exceptions]
+        end
       end
 
       def view_paths

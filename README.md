@@ -19,6 +19,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - Include a partial template
 - Layout template
 - Before/After filters
+- Handle exceptions
 - Include helpers
 - Integrate with any rack applications (Rails, Sinatra, etc...)
 - Extremely simple and easy to use!

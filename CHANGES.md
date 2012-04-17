@@ -5,10 +5,17 @@ CHANGES
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.4...master)
 
+  * Feature
+    - Handle exceptions
+      - Add `config.show_exceptions` option
+      - Invoke `on_error` filter when an exception is caught
+
   * Enhancement
-    - NotFound
+    - NotFound with 404 file
         - Rack::ServerPages::NotFound['404.html']
-    - On Error
+
+  * Bugfix
+    - Duplicated filters
 
 ### [0.0.4](https://github.com/migrs/rack-server-pages/tree/v0.0.4) / 2012-01-15
 

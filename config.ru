@@ -26,6 +26,12 @@ module SampleHelper
 end
 
 run Rack::ServerPages.new { |config|
+  #config.show_exceptions = false
+
+  config.on_error do
+    response.body = ['Error!']
+  end
+
   config.helpers SampleHelper
   config.helpers do
     def sample4
