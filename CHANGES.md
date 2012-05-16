@@ -1,9 +1,9 @@
 CHANGES
 =======
 
-### [0.0.6](https://github.com/migrs/rack-server-pages/tree/master) / Not Yet Released
+### [0.0.6](https://github.com/migrs/rack-server-pages/tree/v0.0.6) / 2012-05-16
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.5...master)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.5...v0.0.6)
 
   * Feature
     - Passing local parameters to partial template (Tilt mode only)
