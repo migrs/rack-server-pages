@@ -219,8 +219,8 @@ module Rack
         end
       end
 
-      def render_with_layout(scope, &block)
-        content = render(scope, &block)
+      def render_with_layout(scope, locals = {}, &block)
+        content = render(scope, locals = {}, &block)
         if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
           scope.layout(false)
           Template[layout_file].render_with_layout(scope) { content }
@@ -234,8 +234,8 @@ module Rack
           (@tilt ||= Tilt[@file]) ? self : nil
         end
 
-        def render(scope, &block)
-          @tilt.new(@file).render(scope, &block)
+        def render(scope, locals = {}, &block)
+          @tilt.new(@file).render(scope, locals, &block)
         end
 
         def default_mime_type
@@ -255,7 +255,8 @@ module Rack
           (@file =~ /\.(#{self.class.extensions.join('|')})$/) and ::File.exist?(@file) ? self : nil
         end
 
-        def render(scope, &block)
+        def render(scope, locals = {}, &block)
+          ## TODO: support locals
           ERB.new(IO.read(@file)).result(scope._binding(&block))
         end
 
@@ -292,9 +293,9 @@ module Rack
         halt
       end
 
-      def partial(file, &block)
+      def partial(file, locals = {}, &block)
         if tpl_file = Dir["#{file}{.*,}"].first and template = Template[tpl_file]
-          template.render(self, &block)
+          template.render(self, locals, &block)
         else
           IO.read(file)
         end

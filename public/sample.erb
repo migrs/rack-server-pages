@@ -5,6 +5,7 @@ What's your name?:
   <input type="text" name="name" value="<%=h params["name"]%>" />
   <input type="submit" />
 </form>
+<%= partial 'views/examples/_time.html', :a => 'PartA', :b => 'PartB' %>
 
 <%= @sample1 %>
 <%= @sample2 %>

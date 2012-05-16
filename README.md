@@ -477,7 +477,6 @@ And create `public/info.php` :)
 ## ToDo
 
 ### Implements
-- Error handling
 - Static file generator (for designer)
 
 ### Tasks
