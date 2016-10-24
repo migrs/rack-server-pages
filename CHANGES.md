@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+### [Next](https://github.com/migrs/rack-server-pages/tree/master)
+
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...master)
+
+  * Feature
+    - No longer tested against Ruby < 2.2
+
 ### [0.0.6](https://github.com/migrs/rack-server-pages/tree/v0.0.6) / 2012-05-16
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.5...v0.0.6)
@@ -43,7 +50,7 @@ CHANGES
 
   * Documents
     - Filters and Helpers
-    - Add [CHAMGES.md](https://github.com/migrs/rack-server-pages/blob/master/CHAMGES.md) (this document)
+    - Add [CHANGES.md](https://github.com/migrs/rack-server-pages/blob/master/CHANGES.md) (this document)
 
 
 ### [0.0.3](https://github.com/migrs/rack-server-pages/tree/v0.0.3) / 2012-01-06
