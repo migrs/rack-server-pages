@@ -6,9 +6,11 @@ gem 'rack'
 
 group :development, :test do
   gem 'rake'
+  gem 'rubocop', '0.44.1'
   gem 'simplecov'
   gem 'rack-test', require: 'rack/test'
   gem 'rspec'
+  gem 'rspec-its'
   gem 'slim'
   gem 'sass'
   gem 'tapp'

@@ -5,8 +5,10 @@ CHANGES
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...master)
 
-  * Feature
+  * Misc
     - No longer tested against Ruby < 2.2
+    - Added Rubocop, Ruby linter
+    - Upgraded to RSpec 3.x
 
 ### [0.0.6](https://github.com/migrs/rack-server-pages/tree/v0.0.6) / 2012-05-16
 

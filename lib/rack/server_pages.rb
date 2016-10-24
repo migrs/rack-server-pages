@@ -8,13 +8,12 @@ require 'forwardable'
 
 module Rack
   class ServerPages
-
     class << self
       def call(env)
         new.call(env)
       end
 
-      def [](options={}, &block)
+      def [](options = {}, &block)
         new(nil, options, &block)
       end
     end
@@ -24,13 +23,13 @@ module Rack
       yield @config if block_given?
       @app = app || @config.failure_app || NotFound
 
-      require ::File.dirname(__FILE__) + "/server_pages/php_helper"
+      require ::File.dirname(__FILE__) + '/server_pages/php_helper'
       @config.helpers Rack::ServerPages::PHPHelper
 
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
 
-      @path_regex = %r!^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9][\w\.\-]*?\w)?(\.\w+)?$!
+      @path_regex = %r{^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9][\w\.\-]*?\w)?(\.\w+)?$}
     end
 
     def call(env)
@@ -39,18 +38,18 @@ module Rack
 
     def serving(env)
       files = find_template_files(env['PATH_INFO'])
-      unless files.nil? or files.empty?
+      if files.nil? || files.empty?
+        @app
+      else
         file = select_template_file(files)
         (tpl = Template[file]) ? server_page(tpl) : StaticFile.new(file, @config.cache_control)
-      else
-        @app
       end.call(env)
     end
 
     def find_template_files(path_info)
       if m = path_info.match(@path_regex)
         @config.view_paths.inject([]) do |files, path|
-          files.concat Dir["#{path}/#{m[1]}#{m[2]||'index'}#{m[3]}{.*,}"].select{|s|s.include?('.')}
+          files.concat Dir["#{path}/#{m[1]}#{m[2] || 'index'}#{m[3]}{.*,}"].select { |s| s.include?('.') }
         end
       end
     end
@@ -80,7 +79,7 @@ module Rack
                 raise $!
               else
                 scope.response.status = 500
-                scope.response['Content-Type'] ||= "text/html"
+                scope.response['Content-Type'] ||= 'text/html'
                 @config.filter.invoke(scope, :on_error)
               end
             ensure
@@ -92,16 +91,16 @@ module Rack
     end
 
     class Filter
-      TYPES = [:before, :after, :on_error]
+      TYPES = [:before, :after, :on_error].freeze
       TYPES.each do |type|
-        define_method(type) {|*fn, &block| add(type, *fn, &block) }
+        define_method(type) { |*fn, &block| add(type, *fn, &block) }
       end
 
       def initialize
-        @filters = Hash[[TYPES, Array.new(TYPES.size) {[]}].transpose]
+        @filters = Hash[[TYPES, Array.new(TYPES.size) { [] }].transpose]
       end
 
-      def [] type
+      def [](type)
         @filters[type]
       end
 
@@ -163,14 +162,14 @@ module Rack
 
       def show_exceptions?
         if self[:show_exceptions].nil?
-          ENV['RACK_ENV'].nil? or (ENV['RACK_ENV'] == 'development')
+          ENV['RACK_ENV'].nil? || (ENV['RACK_ENV'] == 'development')
         else
           self[:show_exceptions]
         end
       end
 
       def view_paths
-        (v = self[:view_path]).kind_of?(Enumerable) ? v : [v.to_s]
+        (v = self[:view_path]).is_a?(Enumerable) ? v : [v.to_s]
       end
 
       def helpers(*args, &block)
@@ -181,9 +180,8 @@ module Rack
     end
 
     class Template
-
       class << self
-        def [] file
+        def [](file)
           engine.new(file).find_template
         end
 
@@ -192,10 +190,10 @@ module Rack
         end
 
         def tilt?
-          @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt and defined?(Tilt)
+          @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt && defined?(Tilt)
         end
 
-        def use_tilt bool = true
+        def use_tilt(bool = true)
           @use_tilt = !!bool
         end
       end
@@ -212,16 +210,16 @@ module Rack
       end
 
       def mime_type_with_charset(charset = 'utf-8')
-        if (m = mime_type) =~ %r!^(text/\w+|application/(?:javascript|(xhtml\+)?xml|json))$!
-         "#{m}; charset=#{charset}"
+        if (m = mime_type) =~ %r{^(text/\w+|application/(?:javascript|(xhtml\+)?xml|json))$}
+          "#{m}; charset=#{charset}"
         else
-         m
+          m
         end
       end
 
-      def render_with_layout(scope, locals = {}, &block)
+      def render_with_layout(scope, _locals = {}, &block)
         content = render(scope, locals = {}, &block)
-        if layout = scope.layout and layout_file = Dir["#{layout}{.*,}"].first
+        if (layout = scope.layout) && (layout_file = Dir["#{layout}{.*,}"].first)
           scope.layout(false)
           Template[layout_file].render_with_layout(scope) { content }
         else
@@ -231,7 +229,8 @@ module Rack
 
       class TiltTemplate < Template
         def find_template
-          (@tilt ||= Tilt[@file]) ? self : nil
+          @tilt ||= Tilt[@file]
+          @tilt ? self : nil
         end
 
         def render(scope, locals = {}, &block)
@@ -252,16 +251,16 @@ module Rack
         end
 
         def find_template
-          (@file =~ /\.(#{self.class.extensions.join('|')})$/) and ::File.exist?(@file) ? self : nil
+          (@file =~ /\.(#{self.class.extensions.join('|')})$/) && ::File.exist?(@file) ? self : nil
         end
 
-        def render(scope, locals = {}, &block)
+        def render(scope, _locals = {}, &block)
           ## TODO: support locals
           ERB.new(IO.read(@file)).result(scope._binding(&block))
         end
 
         def default_mime_type
-          "text/html"
+          'text/html'
         end
       end
     end
@@ -288,13 +287,13 @@ module Rack
     end
 
     module CoreHelper
-      def redirect(target, status=302)
+      def redirect(target, status = 302)
         response.redirect(target, status)
         halt
       end
 
       def partial(file, locals = {}, &block)
-        if tpl_file = Dir["#{file}{.*,}"].first and template = Template[tpl_file]
+        if (tpl_file = Dir["#{file}{.*,}"].first) && (template = Template[tpl_file])
           template.render(self, locals, &block)
         else
           IO.read(file)
@@ -307,9 +306,9 @@ module Rack
       end
 
       def halt(*args)
-        if args[0].kind_of? Fixnum
-          response.headers.merge! args[1] if (a1_is_h = args[1].kind_of? Hash)
-          response.body = [(a1_is_h) ? args[2] : args[1]]
+        if args[0].is_a? Integer
+          response.headers.merge! args[1] if (a1_is_h = args[1].is_a? Hash)
+          response.body = [a1_is_h ? args[2] : args[1]]
           response.status = args[0]
         else
           response.body = [args[0]]
@@ -317,8 +316,8 @@ module Rack
         throw :halt
       end
 
-      def url(path = "")
-        env['SCRIPT_NAME'] + (path.to_s[0,1]!= '/' ? '/' : '') + path.to_s
+      def url(path = '')
+        env['SCRIPT_NAME'] + (path.to_s[0, 1] != '/' ? '/' : '') + path.to_s
       end
     end
 
