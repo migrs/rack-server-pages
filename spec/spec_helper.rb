@@ -4,16 +4,33 @@ require 'rspec/its'
 require 'tapp'
 require 'simplecov'
 require 'rack-server-pages'
+require 'capybara/rspec'
+
 SimpleCov.start
 
 RSpec.configure do |conf|
   conf.include Rack::Test::Methods
+  conf.include Capybara::DSL
   conf.raise_errors_for_deprecations!
 end
 
 require 'tilt'
 require 'slim'
 Tilt.register Tilt::ERBTemplate, 'php'
+
+require 'sass'
+require 'rdiscount'
+require 'rdoc'
+require 'liquid'
+require 'radius'
+require 'less'
+require 'haml'
+require 'markaby'
+require 'builder'
+require 'coffee_script'
+require 'redcloth'
+require 'wikicloth'
+require 'yajl'
 
 def app
   @app ||= Rack::Builder.app do
@@ -22,7 +39,7 @@ def app
 end
 
 def mock_app(&block)
-  @app = Rack::Builder.app(&block)
+  @app ||= Rack::Builder.app(&block)
 end
 
 def should_be_ok(path)

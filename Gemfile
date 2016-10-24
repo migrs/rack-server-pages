@@ -34,4 +34,7 @@ group :development, :test do
   gem 'rdoc'
   gem 'wikicloth'
   gem 'yajl-ruby'
+  gem 'capybara'
+  gem 'selenium-webdriver', '~> 2.5'
+  gem 'therubyracer'
 end

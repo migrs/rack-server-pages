@@ -9,6 +9,7 @@ CHANGES
     - No longer tested against Ruby < 2.2
     - Added Rubocop, Ruby linter
     - Upgraded to RSpec 3.x
+    - Added integration tests with Capybara
 
 ### [0.0.6](https://github.com/migrs/rack-server-pages/tree/v0.0.6) / 2012-05-16
 

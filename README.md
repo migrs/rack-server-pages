@@ -25,7 +25,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Requirements
 
-- [Ruby](http://ruby-lang.org/) 1.8.7, 1.9.x, jruby 1.6.x
+- [Ruby](http://ruby-lang.org/) >= 2.2.2
 - [Rack](http://github.com/rack/rack)
 
 ## Install
