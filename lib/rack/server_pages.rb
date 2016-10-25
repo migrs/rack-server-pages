@@ -29,7 +29,7 @@ module Rack
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
 
-      @path_regex = %r{^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9][\w\.\-]*?\w)?(\.\w+)?$}
+      @path_regex = %r{^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9][\w\.\-\@]*?\w)?(\.\w+)?$}
     end
 
     def call(env)
@@ -46,7 +46,10 @@ module Rack
                  if tpl
                    server_page(tpl)
                  else
-                   Rack::File.new(@config.view_paths.first)
+                   view_path = @config.view_paths.detect do |path|
+                     ::File.exist?(::File.join(path, env['PATH_INFO']))
+                   end
+                   Rack::File.new(view_path || @config.view_paths.first)
                  end
                end
       server.call(env)

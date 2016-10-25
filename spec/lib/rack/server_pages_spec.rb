@@ -37,6 +37,12 @@ describe 'Rack::ServerPages' do
       should_be_ok        '/betty.css'
       should_be_ok        '/betty.css.sass'
     end
+
+    context 'content-type: image/png' do
+      let(:content_type) { 'image/png' }
+      should_be_ok        '/rack_logo.png'
+      should_be_ok        '/rack_logo@2x.png'
+    end
   end
 
   describe 'Rack::ServerPages private methods' do
