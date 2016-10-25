@@ -38,12 +38,18 @@ module Rack
 
     def serving(env)
       files = find_template_files(env['PATH_INFO'])
-      if files.nil? || files.empty?
-        @app
-      else
-        file = select_template_file(files)
-        (tpl = Template[file]) ? server_page(tpl) : StaticFile.new(file, @config.cache_control)
-      end.call(env)
+      server = if files.nil? || files.empty?
+                 @app
+               else
+                 file = select_template_file(files)
+                 tpl = Template[file]
+                 if tpl
+                   server_page(tpl)
+                 else
+                   Rack::File.new(@config.view_paths.first)
+                 end
+               end
+      server.call(env)
     end
 
     def find_template_files(path_info)
@@ -262,17 +268,6 @@ module Rack
         def default_mime_type
           'text/html'
         end
-      end
-    end
-
-    class StaticFile < File
-      def initialize(path, cache_control = nil)
-        @path = path
-        @cache_control = cache_control
-      end
-
-      def _call(env)
-        serving(env)
       end
     end
 

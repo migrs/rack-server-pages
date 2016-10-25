@@ -5,6 +5,9 @@ CHANGES
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...master)
 
+  * Bugfix
+    - Fix [#5](https://github.com/migrs/rack-server-pages/issues/5): compatibility with Rack 2.0 [@dblock](http://github.com/dblock)
+
   * Misc
     - No longer tested against Ruby < 2.2
     - Added Rubocop, Ruby linter
