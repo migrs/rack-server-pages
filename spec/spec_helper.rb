@@ -6,7 +6,7 @@ require 'simplecov'
 require 'rack-server-pages'
 require 'capybara/rspec'
 
-SimpleCov.start
+# SimpleCov.start
 
 RSpec.configure do |conf|
   conf.include Rack::Test::Methods
@@ -23,13 +23,13 @@ require 'rdiscount'
 require 'rdoc'
 require 'liquid'
 require 'radius'
-require 'less'
+# require 'less'
 require 'haml'
-require 'markaby'
-require 'builder'
+# require 'markaby'
+# require 'builder'
 require 'coffee_script'
 require 'redcloth'
-require 'wikicloth'
+# require 'wikicloth'
 require 'yajl'
 
 def app

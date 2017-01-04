@@ -38,21 +38,12 @@ module Rack
 
     def serving(env)
       files = find_template_files(env['PATH_INFO'])
-      server = if files.nil? || files.empty?
-                 @app
-               else
-                 file = select_template_file(files)
-                 tpl = Template[file]
-                 if tpl
-                   server_page(tpl)
-                 else
-                   view_path = @config.view_paths.detect do |path|
-                     ::File.exist?(::File.join(path, env['PATH_INFO']))
-                   end
-                   Rack::File.new(view_path || @config.view_paths.first)
-                 end
-               end
-      server.call(env)
+      if files.nil? || files.empty?
+        @app
+      else
+        file = select_template_file(files)
+        (tpl = Template[file]) ? server_page(tpl) : File.new(file.split(env['PATH_INFO']).first)
+      end.call(env)
     end
 
     def find_template_files(path_info)
@@ -226,8 +217,8 @@ module Rack
         end
       end
 
-      def render_with_layout(scope, _locals = {}, &block)
-        content = render(scope, locals = {}, &block)
+      def render_with_layout(scope, locals = {}, &block)
+        content = render(scope, locals, &block)
         if (layout = scope.layout) && (layout_file = Dir["#{layout}{.*,}"].first)
           scope.layout(false)
           Template[layout_file].render_with_layout(scope) { content }
