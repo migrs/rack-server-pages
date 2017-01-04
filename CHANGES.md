@@ -3,16 +3,22 @@ CHANGES
 
 ### [Next](https://github.com/migrs/rack-server-pages/tree/master)
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...master)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.1.0...master)
+
+### [v0.1.0](https://github.com/migrs/rack-server-pages/tree/master)
+
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...v0.1.0)
 
   * Bugfix
     - Fix [#5](https://github.com/migrs/rack-server-pages/issues/5): compatibility with Rack 2.0 [@dblock](http://github.com/dblock)
+    - Fix [#4](https://github.com/migrs/rack-server-pages/issues/4): did not work redirect helper
 
   * Misc
     - No longer tested against Ruby < 2.2
     - Added Rubocop, Ruby linter
     - Upgraded to RSpec 3.x
     - Added integration tests with Capybara
+    - Tested with Tilt 2.0
 
 ### [0.0.6](https://github.com/migrs/rack-server-pages/tree/v0.0.6) / 2012-05-16
 
