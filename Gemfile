@@ -14,7 +14,7 @@ group :development, :test do
   gem 'slim'
   gem 'sass'
   gem 'tapp'
-  gem 'tilt', '~> 1.0'
+  gem 'tilt', '>=2.0'
   gem 'RedCloth'
   gem 'bluecloth'
   # gem 'builder'
@@ -35,6 +35,6 @@ group :development, :test do
   # gem 'wikicloth'
   gem 'yajl-ruby'
   gem 'capybara'
-  gem 'selenium-webdriver', '~> 2.5'
+  gem 'selenium-webdriver', '~>2.5'
   # gem 'therubyracer'
 end
