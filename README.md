@@ -7,7 +7,6 @@ There are no controllers or models, just only views like a jsp, asp and php!
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://secure.travis-ci.org/migrs/rack-server-pages.png)](http://travis-ci.org/migrs/rack-server-pages)
-[![Dependency Status](https://gemnasium.com/migrs/rack-server-pages.png?travis)](https://gemnasium.com/migrs/rack-server-pages)
 
 ## Features
 
@@ -32,7 +31,9 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 [RubyGems](http://rubygems.org/gems/rack-server-pages) available
 
-    gem install rack-server-pages
+```
+gem install rack-server-pages
+```
 
 ## Basic usage
 
@@ -40,17 +41,23 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 Create `config.ru`
 
-    require 'rack-server-pages'
-    run Rack::ServerPages
+```ruby
+require 'rack-server-pages'
+run Rack::ServerPages
+```
 
 Create `public/index.erb`
 
-    <h1>Hello rack!</h1>
-    <p><%= Time.now %></p>
+```html
+<h1>Hello rack!</h1>
+<p><%= Time.now %></p>
+```
 
 Finally running `rackup`
 
-    rackup
+```
+rackup
+```
 
 and visit <http://localhost:9292/>
 
@@ -65,9 +72,11 @@ Valid requests,
 
 Edit `config.ru`
 
-    require 'rack-server-pages'
-    use Rack::ServerPages
-    run Rack::ServerPages::NotFound # or your MyApp
+```ruby
+require 'rack-server-pages'
+use Rack::ServerPages
+run Rack::ServerPages::NotFound # or your MyApp
+```
 
 And same as above.
 
@@ -104,25 +113,33 @@ And same as above.
 
 with parameter
 
-    use Rack::ServerPages, :view_path => 'public'
+```ruby
+use Rack::ServerPages, :view_path => 'public'
+```
 
 with block
 
-    use Rack::ServerPages do |config|
-      config.view_path = 'public'
-    end
+```ruby
+use Rack::ServerPages do |config|
+  config.view_path = 'public'
+end
+```
 
 ### Rack application
 
 with parameter
 
-    run Rack::ServerPages[:view_path => 'public']
+```ruby
+run Rack::ServerPages[:view_path => 'public']
+```
 
 with block
 
-    run Rack::ServerPages.new { |config|
-      config.view_path = 'public'
-    }
+```ruby
+run Rack::ServerPages.new { |config|
+  config.view_path = 'public'
+}
+```
 
 ### Options
 
@@ -146,97 +163,115 @@ with block
 
 with helpers block
 
-    use Rack::ServerPages do |config|
-      config.helpers do
-        def three_times(name)
-          "#{([name.to_s]*3).join(' ')}!!"
-        end
-      end
+```ruby
+use Rack::ServerPages do |config|
+  config.helpers do
+    def three_times(name)
+      "#{([name.to_s]*3).join(' ')}!!"
     end
+  end
+end
+```
 
 in view file (erb)
 
-    <%= three_times('blah') %>
+```erb
+<%= three_times('blah') %>
+```
 
 with helper module
 
-    module SampleHelper
-      def three_times(name)
-        "#{([name.to_s]*3).join(' ')}!!"
-      end
-    end
+```ruby
+module SampleHelper
+  def three_times(name)
+    "#{([name.to_s]*3).join(' ')}!!"
+  end
+end
 
-    use Rack::ServerPages do |config|
-      config.helpers SampleHelper
-    end
+use Rack::ServerPages do |config|
+  config.helpers SampleHelper
+end
+```
 
 with procs
 
-    help1 = proc do
-      def three_times(name)
-        "#{([name.to_s]*3).join(' ')}!!"
-      end
-    end
+```ruby
+help1 = proc do
+  def three_times(name)
+    "#{([name.to_s]*3).join(' ')}!!"
+  end
+end
 
-    help2 = proc {...}
+help2 = proc {...}
 
-    use Rack::ServerPages do |config|
-      config.helpers help1, help2
-    end
+use Rack::ServerPages do |config|
+  config.helpers help1, help2
+end
+```
 
 ### Filters
 
 with before/after block
 
-    use Rack::ServerPages do |config|
-      config.before do
-        @title = 'Hello!'
-      end
+```ruby
+use Rack::ServerPages do |config|
+  config.before do
+    @title = 'Hello!'
+  end
 
-      config.after do
-        logger.debug 'xxxx'
-      end
-    end
+  config.after do
+    logger.debug 'xxxx'
+  end
+end
+```
 
 with procs
 
-    proc1 = proc { @name = 'Jonny' }
-    proc2 = proc { @age = 24 }
-    proc3 = proc { logger.debug 'xxxx' }
+```ruby
+proc1 = proc { @name = 'Jonny' }
+proc2 = proc { @age = 24 }
+proc3 = proc { logger.debug 'xxxx' }
 
-    use Rack::ServerPages do |config|
-      config.before proc1, proc2
-      config.after proc3
-    end
+use Rack::ServerPages do |config|
+  config.before proc1, proc2
+  config.after proc3
+end
+```
 
 if you define before/after method in helper module, it will be treated as filters
 
-    module SampleHelper
-      def before
-        @title = 'Hello!'
-      end
+```ruby
+module SampleHelper
+  def before
+    @title = 'Hello!'
+  end
 
-      def three_times(name)
-        "#{([name.to_s]*3).join(' ')}!!"
-      end
-    end
+  def three_times(name)
+    "#{([name.to_s]*3).join(' ')}!!"
+  end
+end
 
-    use Rack::ServerPages do |config|
-      config.helpers SampleHelper
-    end
+use Rack::ServerPages do |config|
+  config.helpers SampleHelper
+end
+```
 
 in view file
 
-    <%= three_times(@title) %>
+```erb
+<%= three_times(@title) %>
+```
 
 ## Tilt support
 [Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.
 If you want to use Tilt, just `require 'tilt'` and require template engine libraries that you want.
 
-    require 'rack-server-pages'
-    require 'tilt'
-    require 'rdiscount' # markdown library
-    run Rack::ServerPages
+```ruby
+require 'rack-server-pages'
+require 'tilt'
+require 'rdiscount' # markdown library
+run Rack::ServerPages
+```
 
 or put your `Gemfile`
 
@@ -244,161 +279,181 @@ or put your `Gemfile`
 
 `views/article.html.md`
 
-    A First Level Header
-    ====================
+```markdown
+A First Level Header
+====================
 
-    A Second Level Header
-    ---------------------
+A Second Level Header
+---------------------
 
-    Now is the time for all good men to come to
-    the aid of their country. This is just a
-    regular paragraph.
+Now is the time for all good men to come to
+the aid of their country. This is just a
+regular paragraph.
 
-    ### Header 3
+### Header 3
 
-    > This is a blockquote.
-    > Thank you
+> This is a blockquote.
+> Thank you
 
-    [source](http://github.com/migrs/rack-server-pages)
+[source](http://github.com/migrs/rack-server-pages)
+```
 
 <http://localhost:9292/article.html>
 
-    <h1>A First Level Header</h1>
+```html
+<h1>A First Level Header</h1>
 
-    <h2>A Second Level Header</h2>
+<h2>A Second Level Header</h2>
 
-    <p>Now is the time for all good men to come to
-    the aid of their country. This is just a
-    regular paragraph.</p>
+<p>Now is the time for all good men to come to
+the aid of their country. This is just a
+regular paragraph.</p>
 
-    <h3>Header 3</h3>
+<h3>Header 3</h3>
 
-    <blockquote><p>This is a blockquote.
-    Thank you</p></blockquote>
+<blockquote><p>This is a blockquote.
+Thank you</p></blockquote>
 
-    <p><a href="http://github.com/migrs/rack-server-pages">source</a></p>
+<p><a href="http://github.com/migrs/rack-server-pages">source</a></p>
+```
 
 
 ### [Slim](http://slim-lang.com/)
 
 `views/about.html.slim`
 
-    doctype html
-    html
-      head
-        title Slim Core Example
-        meta name="keywords" content="template language"
+```slim
+doctype html
+html
+  head
+    title Slim Core Example
+    meta name="keywords" content="template language"
 
-      body
-        h1 Markup examples
+  body
+    h1 Markup examples
 
-        div id="content" class="example1"
-          p Nest by indentation
+    div id="content" class="example1"
+      p Nest by indentation
+```
 
 <http://localhost:9292/about.html>
 
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Slim Core Example</title>
-        <meta content="template language" name="keywords" />
-      </head>
-      <body>
-        <h1>Markup examples</h1>
-        <div class="example1" id="content">
-          <p>Nest by indentation</p>
-        </div>
-      </body>
-    </html>
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Slim Core Example</title>
+    <meta content="template language" name="keywords" />
+  </head>
+  <body>
+    <h1>Markup examples</h1>
+    <div class="example1" id="content">
+      <p>Nest by indentation</p>
+    </div>
+  </body>
+</html>
+```
 
 ### [Sass](http://sass-lang.com/)
 
 `views/betty.css.sass`
 
-    $blue: #3bbfce
-    $margin: 16px
+```sass
+$blue: #3bbfce
+$margin: 16px
 
-    .content-navigation
-      border-color: $blue
-      color: darken($blue, 9%)
+.content-navigation
+  border-color: $blue
+  color: darken($blue, 9%)
 
-    .border
-      padding: $margin / 2
-      margin: $margin / 2
-      border-color: $blue
+.border
+  padding: $margin / 2
+  margin: $margin / 2
+  border-color: $blue
+```
 
 <http://localhost:9292/betty.css>
 
-    .content-navigation {
-      border-color: #3bbfce;
-      color: #2ca2af; }
+```css
+.content-navigation {
+  border-color: #3bbfce;
+  color: #2ca2af; }
 
-    .border {
-      padding: 8px;
-      margin: 8px;
-      border-color: #3bbfce; }
+.border {
+  padding: 8px;
+  margin: 8px;
+  border-color: #3bbfce; }
+```
 
 ### [Builder](http://builder.rubyforge.org/)
 
 `views/contact.xml.builder`
 
-    xml.instruct!
-    xml.result do |result|
-      result.name "John"
-      result.phone "910-1974"
-    end
+```ruby
+xml.instruct!
+xml.result do |result|
+  result.name "John"
+  result.phone "910-1974"
+end
+```
 
 <http://localhost:9292/contact.xml>
 
-    <result>
-      <name>John</name>
-      <phone>910-1974</phone>
-    </result>
+```xml
+<result>
+  <name>John</name>
+  <phone>910-1974</phone>
+</result>
+```
 
 ### [CoffeeScript](http://jashkenas.github.com/coffee-script/)
 
 `views/script.js.coffee`
 
-    number   = 42
-    opposite = true
+```coffee
+number   = 42
+opposite = true
 
-    number = -42 if opposite
+number = -42 if opposite
 
-    square = (x) -> x * x
+square = (x) -> x * x
 
-    list = [1, 2, 3, 4, 5]
+list = [1, 2, 3, 4, 5]
 
-    math =
-      root:   Math.sqrt
-      square: square
-      cube:   (x) -> x * square x
+math =
+  root:   Math.sqrt
+  square: square
+  cube:   (x) -> x * square x
+```
 
 <http://localhost:9292/script.js>
 
-    (function() {
-      var list, math, number, opposite, square;
+```javascript
+(function() {
+  var list, math, number, opposite, square;
 
-      number = 42;
+  number = 42;
 
-      opposite = true;
+  opposite = true;
 
-      if (opposite) number = -42;
+  if (opposite) number = -42;
 
-      square = function(x) {
-        return x * x;
-      };
+  square = function(x) {
+    return x * x;
+  };
 
-      list = [1, 2, 3, 4, 5];
+  list = [1, 2, 3, 4, 5];
 
-      math = {
-        root: Math.sqrt,
-        square: square,
-        cube: function(x) {
-          return x * square(x);
-        }
-      };
+  math = {
+    root: Math.sqrt,
+    square: square,
+    cube: function(x) {
+      return x * square(x);
+    }
+  };
 
-    }).call(this);
+}).call(this);
+```
 
 see more <http://localhost:9292/examples/>
 
@@ -406,24 +461,32 @@ see more <http://localhost:9292/examples/>
 
 At first, create sample file: `public/hello.erb` or `views/hello.html.erb`
 
-    <p>Hello Rack Server Pages!</p>
-    <p><%= Time.now %></p>
+```html
+<p>Hello Rack Server Pages!</p>
+<p><%= Time.now %></p>
+```
 
 ### Rails
 
 Add to `config/environment.rb` (Rails2) or `config/application.rb` (Rails3)
 
-    config.middleware.use Rack::ServerPages
+```ruby
+config.middleware.use Rack::ServerPages
+```
 
 And run
 
 Rails2
 
-    script/server
+```
+script/server
+```
 
 Rails3
 
-    rails s
+```
+rails s
+```
 
 - <http://localhost:3000/> is Rails response
 - <http://localhost:3000/hello> is Rack Server Pages response
@@ -432,19 +495,23 @@ Rails3
 
 Create `sinatra_sample.rb`
 
-    require 'sinatra'
-    require 'rack-server-pages'
+```ruby
+require 'sinatra'
+require 'rack-server-pages'
 
-    use Rack::ServerPages
+use Rack::ServerPages
 
-    get '/' do
-      '<p>Hello Sinatra!</p>'
-    end
+get '/' do
+  '<p>Hello Sinatra!</p>'
+end
+```
 
 
 And run
 
-    ruby sinatra_sample.rb`
+```
+ruby sinatra_sample.rb
+```
 
 - <http://localhost:4567/> is Sinatra response
 - <http://localhost:4567/hello> is Rack Server Pages response
@@ -457,15 +524,21 @@ And run
 
 ERBTemplate (default)
 
-    Rack::ServerPages::Template::ERBTemplate.extensions << 'php'
+```ruby
+Rack::ServerPages::Template::ERBTemplate.extensions << 'php'
+```
 
 TiltTemplate (see. [Template Mappings](http://github.com/rtomayko/tilt))
 
-    Tilt.register Tilt::ERBTemplate, 'php'
+```ruby
+Tilt.register Tilt::ERBTemplate, 'php'
+```
 
 And create `public/info.php` :)
 
-    <%= phpinfo(); %>
+```erb
+<%= phpinfo(); %>
+```
 
 <http://localhost:9292/info.php>
 
