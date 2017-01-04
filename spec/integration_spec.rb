@@ -13,7 +13,7 @@ describe 'Integration', js: true do
     end
     it 'loads markdown README' do
       click_link 'README'
-      expect(page.find('h1')).to have_content 'Rack Server Pages'
+      expect(page.first('h1')).to have_content 'Rack Server Pages'
     end
     it 'rendered ERB' do
       click_link 'sample.erb'
