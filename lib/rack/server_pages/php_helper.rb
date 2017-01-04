@@ -59,7 +59,7 @@ module Rack::ServerPages::PHPHelper
         <% if defined?(Tilt) %>
         <h2>Tilt</h2>
         <table border="0" cellpadding="3" width="600">
-          <% for key, value in Tilt.lazy_map do %>
+          <% for key, value in (Tilt.respond_to?(:mappings) ? Tilt.mappings : Tilt.lazy_map) do %>
             <tr><td class="e"><%= key %></td><td class="v"><%= value %></td></tr>
           <% end %>
         </table>
