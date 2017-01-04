@@ -299,7 +299,7 @@ module Rack
           response.headers.merge! args[1] if (a1_is_h = args[1].is_a? Hash)
           response.body = [a1_is_h ? args[2] : args[1]]
           response.status = args[0]
-        else
+        elsif args[0]
           response.body = [args[0]]
         end
         throw :halt
@@ -335,7 +335,7 @@ module Rack
       def initialize(env)
         @request  = Rack::Request.new(env)
         @response = Rack::Response.new
-        @response['Content-Type'] = nil
+        # @response['Content-Type'] = nil
       end
 
       def _binding
