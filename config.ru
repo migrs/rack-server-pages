@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'bundler/setup'
-$:.unshift File.dirname(__FILE__) + '/lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/lib'
 require 'rack-server-pages'
 
 # Tilt settings
@@ -9,7 +9,7 @@ require 'slim'
 
 # .php as ERB template :)
 Rack::ServerPages::Template::ERBTemplate.extensions << 'php' # ERBTemplate
-#Rack::ServerPages::Template.use_tilt false
+# Rack::ServerPages::Template.use_tilt false
 Tilt.register Tilt::ERBTemplate, 'php' # TiltTemplate
 
 module SampleHelper
@@ -26,7 +26,7 @@ module SampleHelper
 end
 
 run Rack::ServerPages.new { |config|
-  #config.show_exceptions = false
+  # config.show_exceptions = false
 
   config.on_error do
     response.body = ['Error!']

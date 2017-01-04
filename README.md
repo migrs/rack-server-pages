@@ -1,14 +1,13 @@
 Rack Server Pages
 =================
 
-Rack middleware and application for serving dynamic pages in very simple way.  
+Rack middleware and application for serving dynamic pages in very simple way.
 There are no controllers or models, just only views like a jsp, asp and php!
 
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://secure.travis-ci.org/migrs/rack-server-pages.png)](http://travis-ci.org/migrs/rack-server-pages)
 [![Dependency Status](https://gemnasium.com/migrs/rack-server-pages.png?travis)](https://gemnasium.com/migrs/rack-server-pages)
-[![Still Maintained](http://stillmaintained.com/migrs/rack-server-pages.png)](http://stillmaintained.com/migrs/rack-server-pages)
 
 ## Features
 
@@ -26,7 +25,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Requirements
 
-- [Ruby](http://ruby-lang.org/) 1.8.7, 1.9.x, jruby 1.6.x
+- [Ruby](http://ruby-lang.org/) >= 2.2.2
 - [Rack](http://github.com/rack/rack)
 
 ## Install
@@ -231,7 +230,7 @@ in view file
     <%= three_times(@title) %>
 
 ## Tilt support
-[Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.  
+[Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.
 If you want to use Tilt, just `require 'tilt'` and require template engine libraries that you want.
 
     require 'rack-server-pages'
@@ -491,4 +490,7 @@ And create `public/info.php` :)
   - Benchmark
 
 ## License
-[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2012 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and distributed under the [MIT license](http://www.opensource.org/licenses/mit-license).
+
+[rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2012-2016 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and Contributors.
+
+Distributed under the [MIT license](LICENSE.md).

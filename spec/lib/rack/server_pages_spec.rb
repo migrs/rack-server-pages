@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 begin
-require 'ruby-debug'
-require 'tapp'
+  require 'ruby-debug'
+  require 'tapp'
 rescue LoadError
 end
 
@@ -37,50 +37,56 @@ describe 'Rack::ServerPages' do
       should_be_ok        '/betty.css'
       should_be_ok        '/betty.css.sass'
     end
+
+    context 'content-type: image/png' do
+      let(:content_type) { 'image/png' }
+      should_be_ok        '/rack_logo.png'
+      should_be_ok        '/rack_logo@2x.png'
+    end
   end
 
   describe 'Rack::ServerPages private methods' do
     describe '#evalute_path_info' do
-      subject { m = app.new.instance_variable_get(:@path_regex).match(path_info); m[1,3] if m }
+      subject { m = app.new.instance_variable_get(:@path_regex).match(path_info); m[1, 3] if m }
 
       context '/aaa/bbb.erb' do
         let(:path_info) { '/aaa/bbb.erb' }
-        it { should eq %w(aaa/ bbb .erb) }
+        it { is_expected.to eq %w(aaa/ bbb .erb) }
       end
 
       context '/aaa/bbb/ccc.erb' do
         let(:path_info) { '/aaa/bbb/ccc.erb' }
-        it { should eq %w(aaa/bbb/ ccc .erb) }
+        it { is_expected.to eq %w(aaa/bbb/ ccc .erb) }
       end
 
       context '/aaa/bbb/ccc.' do
         let(:path_info) { '/aaa/bbb/ccc.' }
-        it { should be_nil }
+        it { is_expected.to be_nil }
       end
 
       context '/aaa/bbb/ccc' do
         let(:path_info) { '/aaa/bbb/ccc' }
-        it { should eq ['aaa/bbb/', 'ccc', nil] }
+        it { is_expected.to eq ['aaa/bbb/', 'ccc', nil] }
       end
 
       context '/aaa-bbb/ccc' do
         let(:path_info) { '/aaa-bbb/ccc' }
-        it { should eq ['aaa-bbb/', 'ccc', nil] }
+        it { is_expected.to eq ['aaa-bbb/', 'ccc', nil] }
       end
 
       context '/aaa/bbb/' do
         let(:path_info) { '/aaa/bbb/' }
-        it { should eq ['aaa/bbb/', nil, nil] }
+        it { is_expected.to eq ['aaa/bbb/', nil, nil] }
       end
 
       context '/' do
         let(:path_info) { '/' }
-        it { should eq [nil, nil, nil] }
+        it { is_expected.to eq [nil, nil, nil] }
       end
 
       context path = '/aaa/bbb/AB-c.182-d.min.js' do
         let(:path_info) { path }
-        it { should eq ['aaa/bbb/', 'AB-c.182-d.min', '.js'] }
+        it { is_expected.to eq ['aaa/bbb/', 'AB-c.182-d.min', '.js'] }
       end
     end
   end

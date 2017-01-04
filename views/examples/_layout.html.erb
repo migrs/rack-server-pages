@@ -6,7 +6,7 @@
   <body>
     <h1>rack-server-pages examples</h1>
     <%= partial 'views/examples/_time.html' %>
-    <%= yield %>
+    <%= yield if block_given? %>
     <% unless request.path =~ %r!/examples/(index(\.html)?)?$! %>
       <a href="<%=url('/examples/')%>">List examples</a>
     <% end %>

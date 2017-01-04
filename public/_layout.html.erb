@@ -4,6 +4,6 @@
     <link href="<%=url("/style.css")%>" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <%=yield%>
+    <%= yield if block_given? %>
   </body>
 </html>
