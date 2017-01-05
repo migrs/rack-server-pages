@@ -7,6 +7,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://travis-ci.org/migrs/rack-server-pages.svg?branch=master)](https://travis-ci.org/migrs/rack-server-pages)
+[![Gem Version](https://badge.fury.io/rb/rack-server-pages.svg)](http://badge.fury.io/rb/rack-server-pages)
 
 ## Features
 
