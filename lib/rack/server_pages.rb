@@ -228,6 +228,8 @@ module Rack
       end
 
       class TiltTemplate < Template
+        require 'tilt'
+
         def find_template
           @tilt ||= Tilt[@file]
           @tilt ? self : nil
