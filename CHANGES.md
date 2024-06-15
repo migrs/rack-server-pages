@@ -5,6 +5,9 @@ CHANGES
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.1.0...master)
 
+  * Misc
+    - Replaced Travis-CI with GitHub Actions
+
 ### [v0.1.0](https://github.com/migrs/rack-server-pages/tree/master)
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...v0.1.0)
