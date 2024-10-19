@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'rack'
+gem 'rack', ENV['RACK_VERSION'] || '~> 3'
 
 group :development, :test do
   gem 'builder'
@@ -33,6 +33,7 @@ group :development, :test do
   gem 'maruku'
   gem 'nokogiri'
   gem 'psych', '~> 3.0'
+  gem 'rackup'
   gem 'radius'
   gem 'rdiscount'
   gem 'rdoc'

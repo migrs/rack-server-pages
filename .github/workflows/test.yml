@@ -4,20 +4,27 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    name: test (ruby=${{ matrix.ruby-version }}, rack=${{ matrix.rack-version }})
     strategy:
       fail-fast: false
       matrix:
+        rack-version:
+          - "~> 2"
+          - "~> 3"
         ruby-version:
           - "3.3"
           - "3.2"
           - "3.1"
           - "3.0"
+    env:
+      RACK_VERSION: ${{ matrix.rack-version }}
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
+      - run: bundle show | grep rack
       - uses: browser-actions/setup-firefox@latest
         with:
           firefox-version: "108.0"
