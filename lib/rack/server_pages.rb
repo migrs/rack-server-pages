@@ -29,7 +29,7 @@ module Rack
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
 
-      @path_regex = %r{^#{@config.effective_path}/((?:[\w-]+/)+)?([A-z0-9][\w\.\-\@]*?\w)?(\.\w+)?$}
+      @path_regex = %r{(?u)^#{@config.effective_path}/((?:[\.\-\@\w-]+/)+)?([\w][\w\.\-\@]*?\w)?(\.\w+)?$}
     end
 
     def call(env)
@@ -37,12 +37,13 @@ module Rack
     end
 
     def serving(env)
-      files = find_template_files(env['PATH_INFO'])
+      path_info = CGI.unescape(env['PATH_INFO'])
+      files = find_template_files(path_info)
       if files.nil? || files.empty?
         @app
       else
         file = select_template_file(files)
-        (tpl = Template[file]) ? server_page(tpl) : Rack::Files.new(file.split(env['PATH_INFO']).first)
+        (tpl = Template[file]) ? server_page(tpl) : Rack::Files.new(file.split(path_info).first)
       end.call(env)
     end
 
