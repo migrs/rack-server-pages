@@ -42,7 +42,7 @@ module Rack
         @app
       else
         file = select_template_file(files)
-        (tpl = Template[file]) ? server_page(tpl) : File.new(file.split(env['PATH_INFO']).first)
+        (tpl = Template[file]) ? server_page(tpl) : Rack::Files.new(file.split(env['PATH_INFO']).first)
       end.call(env)
     end
 

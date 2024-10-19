@@ -5,6 +5,9 @@ CHANGES
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.1.0...master)
 
+  * Feature
+    - Added support for Rack 3
+
   * Misc
     - Replaced Travis-CI with GitHub Actions
     - Upgraded RuboCop to 1.67
