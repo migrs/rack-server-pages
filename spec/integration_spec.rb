@@ -2,6 +2,7 @@ require 'spec_helper'
 
 Capybara.app, = Rack::Builder.parse_file(File.expand_path('../../config.ru', __FILE__))
 Capybara.current_driver = :selenium
+Capybara.server = :webrick
 
 describe 'Integration', js: true do
   context 'root' do
