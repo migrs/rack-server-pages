@@ -9,13 +9,10 @@ Gem::Specification.new do |s|
   s.email       = ['m@igrs.jp']
   s.homepage    = 'http://github.com/migrs/rack-server-pages'
   s.licenses    = ['MIT']
-  s.summary     = 'Rack middleware and appilcation for serving dynamic pages in very simple way.'
-  s.description = 'Rack middleware and appilcation for serving dynamic pages in very simple way.
-                     There are no controllers and no models, just only views like a asp, jsp and php!'
+  s.summary     = 'Rack middleware and appilcation for serving dynamic pages.'
+  s.description = 'Rack middleware and appilcation for serving dynamic pages in very simple way, without controllers or models, only views similar to ASP, JSP and PHP.'
 
-  s.files = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(spec)/})
-  end
+  s.files = Dir['lib/**/*', 'CHANGES.md', 'README.md', 'LICENSE.md', 'rack-server-pages.gemspec']
 
   s.require_paths = ['lib']
 
