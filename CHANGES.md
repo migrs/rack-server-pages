@@ -8,6 +8,7 @@ CHANGES
   * Feature
     - Added support for Rack 3
     - Added support for paths with special and unicode characters
+    - The built in `Rack::ServerPages::PHPHelper` has been removed
 
   * Misc
     - Replaced Travis-CI with GitHub Actions

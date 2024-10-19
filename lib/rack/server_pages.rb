@@ -23,9 +23,6 @@ module Rack
       yield @config if block_given?
       @app = app || @config.failure_app || NotFound
 
-      require ::File.dirname(__FILE__) + '/server_pages/php_helper'
-      @config.helpers Rack::ServerPages::PHPHelper
-
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
 
