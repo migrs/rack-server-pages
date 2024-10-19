@@ -45,6 +45,10 @@ describe 'Integration', js: true do
       expect(page).to have_content 'Как вас зовут?'
       expect(page).to have_content 'PartAPartB'
     end
+    it 'rendered ERB in a subfolder of a subfolder with separators' do
+      click_link 'folder/subfolder/(sub-folder)/sample-in-sub-folder.extension.erb'
+      expect(page).to have_content 'PartAPartB'
+    end
   end
   it 'renders all tilt examples' do
     visit '/examples/'

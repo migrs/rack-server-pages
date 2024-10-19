@@ -29,7 +29,7 @@ module Rack
       @config.filter.merge_from_helpers(@config.helpers)
       @binding = Binding.extended_class(@config.helpers)
 
-      @path_regex = %r{(?u)^#{@config.effective_path}/((?:[\.\-\@\w-]+/)+)?([\w][\w\.\-\@]*?\w)?(\.\w+)?$}
+      @path_regex = %r{(?u)^#{@config.effective_path}/((?:[^\/]+/)+)?([\w][^\/]*?\w)?(\.\w+)?$}
     end
 
     def call(env)
