@@ -7,6 +7,7 @@ CHANGES
 
   * Feature
     - Added support for Rack 3
+    - Added support for paths with special and unicode characters
 
   * Misc
     - Replaced Travis-CI with GitHub Actions

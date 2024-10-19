@@ -1,0 +1,14 @@
+<h1>Hello <%=h(params["name"] || "Rack")%>!!</h1>
+<p>Current Time: <%= Time.now %></p>
+What's your name?:
+<form>
+  <input type="text" name="name" value="<%=h params["name"]%>" />
+  <input type="submit" />
+</form>
+<%= partial 'views/examples/_time.html', :a => 'PartA', :b => 'PartB' %>
+
+<%= @sample1 %>
+<%= @sample2 %>
+<%= sample3 %>
+<%= sample4 %>
+<%= sample5 %>

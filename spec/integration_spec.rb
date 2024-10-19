@@ -28,6 +28,23 @@ describe 'Integration', js: true do
       click_link 'info.php'
       expect(page).to have_content 'CGI/1.1'
     end
+    it 'rendered ERB in a folder' do
+      click_link 'folder/sample.erb'
+      expect(page).to have_content 'PartAPartB'
+    end
+    it 'rendered ERB in a subfolder' do
+      click_link 'folder/subfolder/sample.erb'
+      expect(page).to have_content 'PartAPartB'
+    end
+    it 'rendered ERB in a subfolder with a period' do
+      click_link 'folder/special-sub.folder-@/sample.erb'
+      expect(page).to have_content 'PartAPartB'
+    end
+    it 'rendered ERB in a subfolder in Russian' do
+      click_link 'folder/по-русски/пример.erb'
+      expect(page).to have_content 'Как вас зовут?'
+      expect(page).to have_content 'PartAPartB'
+    end
   end
   it 'renders all tilt examples' do
     visit '/examples/'
