@@ -1,1 +1,10 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.0
+
 inherit_from: .rubocop_todo.yml
+
+require:
+  - rubocop-capybara
+  - rubocop-rake
+  - rubocop-rspec

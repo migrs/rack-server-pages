@@ -7,6 +7,8 @@ CHANGES
 
   * Misc
     - Replaced Travis-CI with GitHub Actions
+    - Upgraded RuboCop to 1.67
+    - Added support for Ruby 3.3
 
 ### [v0.1.0](https://github.com/migrs/rack-server-pages/tree/master)
 
