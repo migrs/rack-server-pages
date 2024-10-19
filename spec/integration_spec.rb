@@ -17,6 +17,10 @@ describe 'Integration', js: true do
       expect(page.first('h1')).to have_content 'Rack Server Pages'
     end
     it 'rendered ERB' do
+      click_link 'sample'
+      expect(page).to have_content 'PartAPartB'
+    end
+    it 'rendered ERB with extension' do
       click_link 'sample.erb'
       expect(page).to have_content 'PartAPartB'
     end
