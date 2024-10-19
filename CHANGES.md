@@ -1,9 +1,9 @@
 CHANGES
 =======
 
-### [Next](https://github.com/migrs/rack-server-pages/tree/master)
+### [v0.2.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.0) / 2024-10-19
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.1.0...master)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.1.0...v0.2.0)
 
   * Feature
     - Added support for Rack 3
@@ -15,7 +15,7 @@ CHANGES
     - Upgraded RuboCop to 1.67
     - Added support for Ruby 3.3
 
-### [v0.1.0](https://github.com/migrs/rack-server-pages/tree/master)
+### [v0.1.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.1.0)
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.0.6...v0.1.0)
 
