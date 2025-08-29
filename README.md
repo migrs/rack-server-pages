@@ -96,7 +96,6 @@ And same as above.
   - params
   - session
   - cookies
-  - logger
 
 - [Rack::Response](http://rack.rubyforge.org/doc/Rack/Response.html)
   - response
@@ -221,7 +220,7 @@ use Rack::ServerPages do |config|
   end
 
   config.after do
-    logger.debug 'xxxx'
+    Logger.new($stdout).debug('xxxx')
   end
 end
 ```
@@ -231,7 +230,7 @@ with procs
 ```ruby
 proc1 = proc { @name = 'Jonny' }
 proc2 = proc { @age = 24 }
-proc3 = proc { logger.debug 'xxxx' }
+proc3 = proc { Logger.new($stdout).debug('xxxx') }
 
 use Rack::ServerPages do |config|
   config.before proc1, proc2

@@ -2,7 +2,6 @@
 require 'rack'
 require 'rack/utils'
 require 'rack/mime'
-require 'rack/logger'
 require 'time'
 require 'forwardable'
 
@@ -315,7 +314,7 @@ module Rack
 
       attr_reader :request, :response
 
-      def_delegators :request, :env, :params, :session, :cookies, :logger
+      def_delegators :request, :env, :params, :session, :cookies
       def_delegators :response, :headers, :set_cookies, :delete_cookie
 
       class << self
