@@ -1,13 +1,19 @@
 CHANGES
 =======
 
-### [v0.2.1](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.1) / 2025-08-31
+### [v0.2.2](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.2) / Next
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.0...v0.2.1)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.1...v0.2.2)
 
   * Feature
 
   * Misc
+
+### [v0.2.1](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.1) / 2025-08-31
+
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.0...v0.2.1)
+
+  * Bugfix
     - Stop using `Rack::Logger`
 
 ### [v0.2.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.0) / 2024-10-19
