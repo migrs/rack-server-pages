@@ -1,14 +1,13 @@
 Rack Server Pages
 =================
 
-Rack middleware and application for serving dynamic pages in very simple way.
-There are no controllers or models, just only views like a jsp, asp and php!
+Rack middleware and application for serving dynamic pages without controllers or models, using templates similar to JSP, ASP, and PHP. Requests map directly to files in your view directories. Built-in ERB works without extra runtime dependencies beyond Rack; Tilt and additional template engines are optional.
 
-<http://github.com/migrs/rack-server-pages>
+<https://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://github.com/migrs/rack-server-pages/actions/workflows/test.yml/badge.svg)](https://github.com/migrs/rack-server-pages/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/migrs/rack-server-pages/badge.svg?branch=master)](https://coveralls.io/github/migrs/rack-server-pages?branch=master)
-[![Gem Version](https://badge.fury.io/rb/rack-server-pages.svg)](http://badge.fury.io/rb/rack-server-pages)
+[![Gem Version](https://badge.fury.io/rb/rack-server-pages.svg)](https://badge.fury.io/rb/rack-server-pages)
 
 ## Features
 
@@ -26,8 +25,8 @@ There are no controllers or models, just only views like a jsp, asp and php!
 
 ## Requirements
 
-- [Ruby](http://ruby-lang.org/) >= 2.2.2
-- [Rack](http://github.com/rack/rack)
+- [Ruby](https://www.ruby-lang.org/)
+- [Rack](https://github.com/rack/rack)
 
 CI tests Ruby 3.0 through 3.4 and 4.0 against Rack 2.2 and 3, including browser integration tests with headless Firefox. Selenium manages the browser driver automatically.
 
@@ -35,7 +34,7 @@ The test suite collects line and branch coverage with SimpleCov before loading t
 
 ## Install
 
-[RubyGems](http://rubygems.org/gems/rack-server-pages) available
+Available on [RubyGems](https://rubygems.org/gems/rack-server-pages):
 
 ```
 gem install rack-server-pages
@@ -95,20 +94,20 @@ And same as above.
   - halt(\*args) (same as [Sinatra](http://www.sinatrarb.com/intro#Halting))
   - url(path)
 
-- [Rack::Request](http://rack.rubyforge.org/doc/Rack/Request.html)
+- [Rack::Request](https://www.rubydoc.info/gems/rack/Rack/Request)
   - request
   - env
   - params
   - session
   - cookies
 
-- [Rack::Response](http://rack.rubyforge.org/doc/Rack/Response.html)
+- [Rack::Response](https://www.rubydoc.info/gems/rack/Rack/Response)
   - response
   - headers
   - set\_cookies
   - delete\_cookie
 
-- [ERB::Util](http://www.ruby-doc.org/stdlib-1.9.3/libdoc/erb/rdoc/ERB/Util.html)
+- [ERB::Util](https://docs.ruby-lang.org/en/master/ERB/Util.html)
   - h (alias for: html\_escape)
   - u (alias for: url\_encode)
 
@@ -267,9 +266,24 @@ in view file
 <%= three_times(@title) %>
 ```
 
+### Rendering a template with `halt`
+
+`partial` returns a rendered string, so pass its result to `halt` as the response body. For example, create `views/forbidden.html.erb`:
+
+```erb
+<h1><%= 'Forbidden' %></h1>
+```
+
+Inside a before filter, helper, or template, return that page with the desired status and content type:
+
+```ruby
+halt 403, { Rack::CONTENT_TYPE => 'text/html; charset=utf-8' }, partial('views/forbidden.html')
+```
+
+Place the call inside your existing validation or authorization check. `partial` takes a filesystem path relative to the working directory, or an absolute path; it does not search `view_path` automatically. Omitting the final `.erb` suffix lets it find the template. `halt` skips normal page rendering, so automatic layouts are not applied to this response. The example works with both built-in ERB and Tilt.
+
 ## Tilt support
-[Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.
-If you want to use Tilt, just `require 'tilt'` and require template engine libraries that you want.
+[Tilt](https://github.com/rtomayko/tilt) is a generic interface to multiple Ruby template engines. To use it, add Tilt and the desired engines to your dependencies, then explicitly require them:
 
 ```ruby
 require 'rack-server-pages'
@@ -278,7 +292,12 @@ require 'rdiscount' # markdown library
 run Rack::ServerPages
 ```
 
-or put your `Gemfile`
+If your application uses `Bundler.require`, the equivalent Gemfile entries are:
+
+```ruby
+gem 'tilt', require: 'tilt'
+gem 'rdiscount', require: 'rdiscount'
+```
 
 ### [Markdown](http://daringfireball.net/projects/markdown/)
 
@@ -473,21 +492,13 @@ At first, create sample file: `public/hello.erb` or `views/hello.html.erb`
 
 ### Rails
 
-Add to `config/environment.rb` (Rails2) or `config/application.rb` (Rails3)
+Add the middleware inside your application configuration in `config/application.rb`:
 
 ```ruby
 config.middleware.use Rack::ServerPages
 ```
 
-And run
-
-Rails2
-
-```
-script/server
-```
-
-Rails3
+Start Rails:
 
 ```
 rails s
@@ -547,25 +558,20 @@ And create `public/info.php` :)
 
 <http://localhost:9292/info.php>
 
-## Demo site
+## Development
 
-<http://rack-server-pages.heroku.com/>
+Clone the repository and install its development dependencies. RedCloth and BlueCloth are legacy optional test engines; the C17 build options let them compile when Ruby defaults to C23:
 
-## ToDo
+```sh
+bundle config set --local build.RedCloth --with-cflags=-std=gnu17
+bundle config set --local build.bluecloth --with-cflags=-std=gnu17
+bundle install
+MOZ_HEADLESS=1 bundle exec rake
+```
 
-### Implements
-- Static file generator (for designer)
+The default task runs lint and the full suite. Browser examples require Firefox; Selenium manages its driver. Run `bundle exec rake spec` for only the tests.
 
-### Tasks
-  - Tutorials
-    - for PHP user
-    - for Designer
-    - for Windows user
-  - More documents
-    - Deployment using apache / passenger / nginx
-  - Complete Tilt examples
-  - Philosophy
-  - Benchmark
+Run the included application with `bundle exec rackup` and visit <http://localhost:9292/> or <http://localhost:9292/examples/> for local examples. There is no maintained hosted demo.
 
 ## License
 

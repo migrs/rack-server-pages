@@ -9,6 +9,7 @@ CHANGES
 
   * Misc
     - Enable line and branch coverage with SimpleCov and publish coverage to Coveralls from CI.
+    - Refresh the README, move its backlog into GitHub issues, and document rendering a template with `halt`.
     - Modernize GitHub Actions and test Ruby 3.0 through 3.4 and 4.0 against Rack 2.2 and 3 with headless Firefox.
 
 ### [v0.2.1](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.1) / 2025-08-31
