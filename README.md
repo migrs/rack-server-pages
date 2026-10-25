@@ -7,6 +7,7 @@ There are no controllers or models, just only views like a jsp, asp and php!
 <http://github.com/migrs/rack-server-pages>
 
 [![Build Status](https://github.com/migrs/rack-server-pages/actions/workflows/test.yml/badge.svg)](https://github.com/migrs/rack-server-pages/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/migrs/rack-server-pages/badge.svg?branch=master)](https://coveralls.io/github/migrs/rack-server-pages?branch=master)
 [![Gem Version](https://badge.fury.io/rb/rack-server-pages.svg)](http://badge.fury.io/rb/rack-server-pages)
 
 ## Features
@@ -29,6 +30,8 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - [Rack](http://github.com/rack/rack)
 
 CI tests Ruby 3.0 through 3.4 and 4.0 against Rack 2.2 and 3, including browser integration tests with headless Firefox. Selenium manages the browser driver automatically.
+
+The test suite collects line and branch coverage with SimpleCov before loading the library, including unexecuted files under `lib/`. Run `bundle exec rake spec` and open `coverage/index.html` to inspect the local report. CI publishes `coverage/.resultset.json` to Coveralls from the Ruby 4.0 / Rack 3 job only, so compatibility jobs do not overwrite each other's reports. Coverage output is ignored by Git.
 
 ## Install
 
