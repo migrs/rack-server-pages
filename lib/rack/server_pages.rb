@@ -4,6 +4,7 @@ require 'rack/utils'
 require 'rack/mime'
 require 'time'
 require 'forwardable'
+require 'digest/sha2'
 
 module Rack
   class ServerPages
@@ -39,9 +40,48 @@ module Rack
         @app
       else
         file = select_template_file(files)
-        (tpl = Template[file]) ? server_page(tpl) : Rack::Files.new(file.split(path_info).first)
+        (tpl = Template[file]) ? server_page(tpl) : static_file(file, path_info)
       end.call(env)
     end
+
+    module StaticFiles
+      def static_file(file, path_info)
+        root = file.split(path_info).first
+        return Rack::Files.new(root) unless ::File.file?(file) && ::File.readable?(file)
+
+        headers = static_headers(file)
+        files = Rack::Files.new(root, headers)
+        lambda do |env|
+          if @config.static_etags && %w[GET HEAD].include?(env['REQUEST_METHOD']) && matching_etag?(env['HTTP_IF_NONE_MATCH'], headers[Rack::ETAG])
+            [304, headers.dup, []]
+          else
+            files.call(static_request_env(env))
+          end
+        end
+      end
+
+      private
+
+      def static_request_env(env)
+        # If-None-Match takes precedence over If-Modified-Since.
+        ignore_modified_since = !@config.static_timestamps || (@config.static_etags && env.key?('HTTP_IF_NONE_MATCH'))
+        ignore_modified_since ? env.merge('HTTP_IF_MODIFIED_SINCE' => nil) : env
+      end
+
+      def static_headers(file)
+        headers = @config.static_etags ? { Rack::ETAG => %("#{Digest::SHA256.file(file).hexdigest}") } : {}
+        @config.static_cache_control ? headers.merge(Rack::CACHE_CONTROL => @config.static_cache_control) : headers
+      end
+
+      def matching_etag?(condition, etag)
+        condition.to_s.split(',').any? do |candidate|
+          candidate = candidate.strip.sub(%r{\AW/}, '')
+          candidate == '*' || candidate == etag
+        end
+      end
+    end
+
+    include StaticFiles
 
     def find_template_files(path_info)
       if m = path_info.match(@path_regex)
@@ -66,7 +106,7 @@ module Rack
 
     def server_page(template)
       lambda do |env|
-        @binding.new(env).tap do |scope|
+        @binding.new(env, self).tap do |scope|
           catch(:halt) do
             begin
               @config.filter.invoke(scope, :before)
@@ -86,6 +126,36 @@ module Rack
         end.response.finish
       end
     end
+
+    module AssetPaths
+      def asset_path(path)
+        path, fragment = path.to_s.split('#', 2)
+        path, query = path.to_s.split('?', 2)
+        path, file = asset_file(path.to_s)
+        query = Rack::Utils.parse_query(query)
+        query['v'] = Digest::SHA256.file(file).hexdigest
+        "#{path}?#{Rack::Utils.build_query(query)}#{fragment && "##{fragment}"}"
+      end
+
+      private
+
+      def asset_file(path)
+        raise ArgumentError, 'asset_path requires a local asset path without parent-directory traversal' unless valid_asset_path?(CGI.unescape(path))
+
+        path = "#{@config.effective_path}/#{path.sub(%r{\A/}, '')}"
+        file = select_template_file(find_template_files(CGI.unescape(path)) || [])
+        raise Errno::ENOENT, path unless file && ::File.file?(file)
+
+        [path, file]
+      end
+
+      def valid_asset_path?(path)
+        !path.empty? && (path !~ %r{\A(?:[a-z][a-z0-9+.-]*:|//)}i) &&
+          !path.split('/').include?('..') && !path.include?("\0")
+      end
+    end
+
+    include AssetPaths
 
     class Filter
       TYPES = [:before, :after, :on_error].freeze
@@ -143,7 +213,8 @@ module Rack
         end
       end
 
-      hash_accessor :view_path, :effective_path, :cache_control, :default_charset, :failure_app, :show_exceptions
+      hash_accessor :view_path, :effective_path, :cache_control, :static_cache_control, :static_etags, :static_timestamps,
+                    :default_charset, :failure_app, :show_exceptions
 
       attr_reader :filter
 
@@ -153,6 +224,8 @@ module Rack
         super
         self[:default_charset] ||= 'utf-8'
         self[:view_path] ||= %w(views public)
+        self[:static_etags] = true
+        self[:static_timestamps] = true
         @helpers = []
         @filter  = Filter.new
       end
@@ -273,6 +346,10 @@ module Rack
     end
 
     module CoreHelper
+      def asset_path(path)
+        url(@server_pages.asset_path(path))
+      end
+
       def redirect(target, status = 302)
         response.redirect(target, status)
         halt
@@ -329,9 +406,10 @@ module Rack
         end
       end
 
-      def initialize(env)
+      def initialize(env, server_pages = nil)
         @request  = Rack::Request.new(env)
         @response = Rack::Response.new
+        @server_pages = server_pages
         # @response['Content-Type'] = nil
       end
 

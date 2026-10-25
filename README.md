@@ -13,6 +13,8 @@ Rack middleware and application for serving dynamic pages without controllers or
 
 - Serving dynamic pages (default: ERB)
 - Serving static files
+- Content-versioned asset URLs with `asset_path`
+- Configurable static-file caching with content-based `ETag` headers and timestamp validation
 - No requirements (except Rack)
 - Tilt support (optional)
 - Include a partial template
@@ -87,29 +89,30 @@ And same as above.
 
 ## Template bindings
 
-- CoreHelper
-  - layout(file)
-  - partial(file)
-  - redirect(target, status=302) (same as [Sinatra](http://www.sinatrarb.com/intro#Browser%20Redirect))
-  - halt(\*args) (same as [Sinatra](http://www.sinatrarb.com/intro#Halting))
-  - url(path)
+- `CoreHelper`
+  - `layout(file)`
+  - `partial(file)`
+  - `redirect(target, status=302)` (same as [Sinatra](http://www.sinatrarb.com/intro#Browser%20Redirect))
+  - `halt(*args)` (same as [Sinatra](http://www.sinatrarb.com/intro#Halting))
+  - `url(path)`
+  - `asset_path(path)`
 
-- [Rack::Request](https://www.rubydoc.info/gems/rack/Rack/Request)
-  - request
-  - env
-  - params
-  - session
-  - cookies
+- [`Rack::Request`](https://www.rubydoc.info/gems/rack/Rack/Request)
+  - `request`
+  - `env`
+  - `params`
+  - `session`
+  - `cookies`
 
-- [Rack::Response](https://www.rubydoc.info/gems/rack/Rack/Response)
-  - response
-  - headers
-  - set\_cookies
-  - delete\_cookie
+- [`Rack::Response`](https://www.rubydoc.info/gems/rack/Rack/Response)
+  - `response`
+  - `headers`
+  - `set_cookies`
+  - `delete_cookie`
 
-- [ERB::Util](https://docs.ruby-lang.org/en/master/ERB/Util.html)
-  - h (alias for: html\_escape)
-  - u (alias for: url\_encode)
+- [`ERB::Util`](https://docs.ruby-lang.org/en/master/ERB/Util.html)
+  - `h` (alias for: `html_escape`)
+  - `u` (alias for: `url_encode`)
 
 ## Configurations
 
@@ -147,21 +150,148 @@ run Rack::ServerPages.new { |config|
 
 ### Options
 
-- view\_path
-  - Views folders to load templates from.
-  - default: [views, public]
+#### `view_path`
 
-- effective\_path
-  - default: nil
+Sets the directories searched for templates and static files, in priority order. Accepts one directory or an array; the first matching file is used.
 
-- default\_charset
-  - default: utf-8
+Default: `['views', 'public']`.
 
-- cache\_control
-  - default: nil
+```ruby
+config.view_path = ['site/views', 'site/public']
+```
 
-- failure\_app
-  - default: nil
+#### `effective_path`
+
+Limits file serving to a URL prefix and removes that prefix when resolving files. Requests outside the prefix fall through to the downstream or fallback application.
+
+Default: `nil` (no prefix).
+
+```ruby
+config.effective_path = '/pages'
+```
+
+This serves `/pages/about.html` from `about.html` under a configured `view_path` directory.
+
+#### `default_charset`
+
+Sets the default charset in rendered template responses' `Content-Type` header. Does not convert file contents or change static-file headers.
+
+Default: `'utf-8'`.
+
+```ruby
+config.default_charset = 'utf-8'
+```
+
+#### `cache_control`
+
+Sets the default `Cache-Control` response header for rendered templates, including generated CSS. A header explicitly set by a template or filter takes precedence. Static files use `static_cache_control` instead.
+
+Default: `nil` (no policy added).
+
+```ruby
+config.cache_control = 'private, no-store'
+```
+
+This prevents caching pages containing sensitive information.
+
+#### `static_cache_control`
+
+Sets the `Cache-Control` response header for static files such as CSS, JavaScript, and images. Rendered templates, including generated CSS, use `cache_control` instead.
+
+Default: `nil` (no policy added).
+
+```ruby
+config.static_cache_control = 'public, no-cache'
+```
+
+This allows caching but requires revalidation before reuse.
+
+#### `static_etags`
+
+Adds a content-based `ETag` response header to static files by hashing each file with SHA-256 on each request. A matching `If-None-Match` returns an empty `304` for `GET`/`HEAD` and takes precedence over `If-Modified-Since`.
+
+Default: `true`.
+
+```ruby
+config.static_etags = false
+```
+
+This disables content hashing, `ETag` generation, and `ETag` validation without disabling `static_timestamps` or `asset_path`.
+
+#### `static_timestamps`
+
+Honors `If-Modified-Since` on static requests using Rack's timestamp-based conditional handling, unless enabled `static_etags` validation takes precedence.
+
+Default: `true`.
+
+```ruby
+config.static_timestamps = false
+```
+
+This ignores `If-Modified-Since` when deployment timestamps are unreliable. The `Last-Modified` response header and `static_etags` validation are unaffected.
+
+#### `failure_app`
+
+Sets a fallback Rack application for requests that do not resolve to a template or static file. When used as middleware, the downstream application takes precedence over this setting.
+
+Default: `nil` (uses the built-in `404` response when no downstream application is supplied).
+
+```ruby
+config.failure_app = ->(_env) { [404, { 'content-type' => 'text/plain' }, ['Page not found']] }
+```
+
+#### `show_exceptions`
+
+Controls whether template-rendering errors are raised to the caller or handled as a `500` response with `on_error` filters. Does not control a built-in error page.
+
+Default: `nil` (raises when `RACK_ENV` is unset or `'development'`; handles errors in other environments).
+
+```ruby
+config.show_exceptions = false
+```
+
+This handles template errors instead of raising them.
+
+### Versioned assets and browser caching
+
+Content-based `ETag` validation and versioned asset URLs work independently. With `static_etags = true` (the default), ordinary URLs such as `/styles.css` receive `ETag` headers and support `If-None-Match` without using `asset_path`. However, validators only help when the browser makes a request; they cannot prevent reuse of an asset that the browser considers fresh. `asset_path` changes the URL when the file contents change, so a browser fetching fresh HTML requests the new asset URL instead of reusing the old one. Use both for stronger stale-asset protection.
+
+Use `asset_path` instead of a fixed local asset URL in templates:
+
+```erb
+<link rel="stylesheet" href="<%= h asset_path('/styles.css') %>">
+<script src="<%= h asset_path('/scripts/app.js') %>"></script>
+<img src="<%= h asset_path('/img/logo.png') %>" alt="Logo">
+```
+
+The helper adds a SHA-256 content fingerprint, for example `/styles.css?v=...`. Changed file contents produce a new URL even when a deployment preserves file timestamps and sizes. Existing query parameters and fragments are preserved, and an existing `v` parameter is replaced. Paths are relative to the configured view paths; application mounts (`SCRIPT_NAME`) and `effective_path` are included automatically. Missing files raise `Errno::ENOENT`; external URLs and parent-directory traversal are rejected.
+
+Configure browser revalidation explicitly:
+
+```ruby
+use Rack::ServerPages do |config|
+  config.cache_control = 'private, no-cache'
+  config.static_cache_control = 'public, no-cache'
+end
+```
+
+Both settings default to `nil`, preserving the existing cache-policy defaults. `no-cache` permits storage but requires revalidation before reuse; use `private, no-store` instead for templates containing sensitive account or payment information. These settings do not change cache headers on the downstream application.
+
+By default, static responses include content-based `ETag` headers, hashing the file on each request. Matching `If-None-Match` requests return an empty `304` response. When both validators are present, `If-None-Match` takes precedence over `If-Modified-Since`, so a changed file is returned for an old `ETag` even if its modification time is unchanged. Requests with only `If-Modified-Since` retain Rack's timestamp-based conditional handling.
+
+Set `config.static_etags = false` to disable content hashing and content-based `ETag` validation. With the default timestamp-validation setting, this restores Rack's original static-file conditional handling. `static_cache_control` still applies, and `asset_path` remains available independently. See [UPGRADING](UPGRADING.md) when updating from an earlier release.
+
+`static_timestamps` also defaults to `true`. Set `config.static_timestamps = false` to ignore timestamp-based request validation when deployment timestamps are unreliable. This does not remove the `Last-Modified` response header or disable `ETag` validation. Set both options to `false` to disable both conditional checks.
+
+Use the helper for local images, fonts, icons, and other assets too. For URLs inside CSS, rename the stylesheet to `styles.css.erb` and render those references explicitly:
+
+```erb
+.hero { background-image: url("<%= asset_path('/img/background.svg') %>"); }
+```
+
+Continue linking to `/styles.css` through `asset_path`. The fingerprint identifies the selected source file; generated CSS must also use `cache_control = 'private, no-cache'` so changes to a referenced image are picked up even when the CSS template itself has not changed. Referenced files are not rewritten automatically, and no build pipeline is needed.
+
+Do not set `immutable` or a long freshness lifetime for these query-versioned URLs: the middleware serves the current file, not an archive of old versions. This mechanism does not force an already-open page to reload; the new URLs take effect when it fetches fresh HTML.
 
 ### Helpers
 
@@ -177,7 +307,7 @@ use Rack::ServerPages do |config|
 end
 ```
 
-in view file (erb)
+in view file (`.erb`)
 
 ```erb
 <%= three_times('blah') %>
@@ -215,7 +345,7 @@ end
 
 ### Filters
 
-with before/after block
+with `before`/`after` block
 
 ```ruby
 use Rack::ServerPages do |config|
@@ -242,7 +372,7 @@ use Rack::ServerPages do |config|
 end
 ```
 
-if you define before/after method in helper module, it will be treated as filters
+if you define a `before`/`after` method in a helper module, it will be treated as a filter
 
 ```ruby
 module SampleHelper
@@ -274,7 +404,7 @@ in view file
 <h1><%= 'Forbidden' %></h1>
 ```
 
-Inside a before filter, helper, or template, return that page with the desired status and content type:
+Inside a `before` filter, helper, or template, return that page with the desired status and content type:
 
 ```ruby
 halt 403, { Rack::CONTENT_TYPE => 'text/html; charset=utf-8' }, partial('views/forbidden.html')
@@ -294,7 +424,7 @@ require 'rdiscount' # markdown library
 run Rack::ServerPages
 ```
 
-If your application uses `Bundler.require`, the equivalent Gemfile entries are:
+If your application uses `Bundler.require`, the equivalent `Gemfile` entries are:
 
 ```ruby
 gem 'tilt', require: 'tilt'
@@ -538,15 +668,15 @@ ruby sinatra_sample.rb
 
 ### Customize file extension associations
 
-#### e.g. .php as ERB
+#### e.g. `.php` as ERB
 
-ERBTemplate (default)
+`ERBTemplate` (default)
 
 ```ruby
 Rack::ServerPages::Template::ERBTemplate.extensions << 'php'
 ```
 
-TiltTemplate (see. [Template Mappings](http://github.com/rtomayko/tilt))
+`TiltTemplate` (see. [Template Mappings](http://github.com/rtomayko/tilt))
 
 ```ruby
 Tilt.register Tilt::ERBTemplate, 'php'
