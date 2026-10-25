@@ -271,6 +271,8 @@ in view file
 [Tilt](http://github.com/rtomayko/tilt) is generic interface to multiple Ruby template engines.
 If you want to use Tilt, just `require 'tilt'` and require template engine libraries that you want.
 
+Tilt is selected only when its template lookup API is available. A `Tilt` namespace created by another dependency does not enable it or force it to load. Loading Tilt later enables it for subsequent requests unless you have explicitly disabled it with `Rack::ServerPages::Template.use_tilt(false)`.
+
 ```ruby
 require 'rack-server-pages'
 require 'tilt'

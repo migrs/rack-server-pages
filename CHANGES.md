@@ -7,6 +7,9 @@ CHANGES
 
   * Feature
 
+  * Bugfix
+    - Detect the loaded Tilt template API rather than an incomplete namespace created by another dependency.
+
   * Misc
     - Enable line and branch coverage with SimpleCov and publish coverage to Coveralls from CI.
     - Modernize GitHub Actions and test Ruby 3.0 through 3.4 and 4.0 against Rack 2.2 and 3 with headless Firefox.
