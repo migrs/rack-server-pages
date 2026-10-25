@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-### [v0.3.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.3.0) / Next
+### [v0.3.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.3.0) / 2026-10-25
 
   * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.1...v0.3.0)
 

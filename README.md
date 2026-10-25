@@ -705,6 +705,8 @@ The default task runs lint and the full suite. Browser examples require Firefox;
 
 Run the included application with `bundle exec rackup` and visit <http://localhost:9292/> or <http://localhost:9292/examples/> for local examples. There is no maintained hosted demo.
 
+See [RELEASING](RELEASING.md) for the maintainer release process.
+
 ## License
 
 [rack-server-pages](http://github.com/migrs/rack-server-pages) is Copyright (c) 2012-2016 [Masato Igarashi](http://github.com/migrs)(@[migrs](http://twitter.com/migrs)) and Contributors.
