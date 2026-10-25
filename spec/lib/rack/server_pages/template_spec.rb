@@ -26,6 +26,43 @@ describe Rack::ServerPages::Template do
     expect(described_class.engine).to eq described_class::ERBTemplate
   end
 
+  it 'does not resolve a missing ERB file as a template' do
+    described_class.use_tilt(false)
+    expect(described_class['/nonexistent-rack-server-pages-template.erb']).to be_nil
+  end
+
+  it 'uses the built-in ERB default content type for an unknown extension' do
+    described_class.use_tilt(false)
+    Tempfile.create(['rack-server-pages', '.unknown.erb']) do |file|
+      expect(described_class[file.path].mime_type_with_charset).to eq 'text/html; charset=utf-8'
+    end
+  end
+
+  it 'does not append a charset to binary content types' do
+    Tempfile.create(['rack-server-pages', '.png.erb']) do |file|
+      expect(described_class[file.path].mime_type_with_charset).to eq 'image/png'
+    end
+  end
+
+  context 'with a custom built-in ERB extension' do
+    around do |example|
+      extensions = described_class::ERBTemplate.extensions.dup
+      described_class::ERBTemplate.extensions(extensions + ['custom'])
+      described_class.use_tilt(false)
+      example.run
+    ensure
+      described_class::ERBTemplate.extensions(extensions)
+    end
+
+    it 'resolves and renders templates with the added extension' do
+      Tempfile.create(['rack-server-pages', '.custom']) do |file|
+        file.write('<%= "Custom ERB" %>')
+        file.flush
+        expect(described_class[file.path].render(scope)).to eq 'Custom ERB'
+      end
+    end
+  end
+
   context 'without a Tilt constant' do
     before { hide_const('Tilt') }
 
