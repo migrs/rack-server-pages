@@ -28,6 +28,8 @@ There are no controllers or models, just only views like a jsp, asp and php!
 - [Ruby](http://ruby-lang.org/) >= 2.2.2
 - [Rack](http://github.com/rack/rack)
 
+CI tests Ruby 3.0 through 3.4 and 4.0 against Rack 2.2 and 3, including browser integration tests with headless Firefox. Selenium manages the browser driver automatically.
+
 ## Install
 
 [RubyGems](http://rubygems.org/gems/rack-server-pages) available

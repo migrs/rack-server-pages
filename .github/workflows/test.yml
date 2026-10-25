@@ -1,17 +1,26 @@
 ---
 name: test
 on: [push, pull_request]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: test (ruby=${{ matrix.ruby-version }}, rack=${{ matrix.rack-version }})
     strategy:
       fail-fast: false
       matrix:
         rack-version:
-          - "~> 2"
+          - "~> 2.2"
           - "~> 3"
         ruby-version:
+          - "4.0"
           - "3.4"
           - "3.3"
           - "3.2"
@@ -19,16 +28,22 @@ jobs:
           - "3.0"
     env:
       RACK_VERSION: ${{ matrix.rack-version }}
+      MOZ_HEADLESS: "1"
+      # Legacy test-only template engines use pre-C23 function definitions.
+      BUNDLE_BUILD__REDCLOTH: --with-cflags=-std=gnu17
+      BUNDLE_BUILD__BLUECLOTH: --with-cflags=-std=gnu17
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-      - run: bundle show | grep rack
-      - uses: browser-actions/setup-firefox@latest
-      - uses: browser-actions/setup-geckodriver@latest
-      - uses: GabrielBB/xvfb-action@v1
+          cache-version: rack-${{ matrix.rack-version }}
+      - uses: browser-actions/setup-firefox@v1
         with:
-          run: |
-            bundle exec rake spec
+          firefox-version: latest
+      - name: Show resolved versions
+        run: |
+          ruby --version
+          bundle exec ruby -e 'require "rack"; puts "Rack #{Rack.release}"'
+      - run: bundle exec rake spec
