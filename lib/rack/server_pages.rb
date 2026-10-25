@@ -187,7 +187,7 @@ module Rack
         end
 
         def tilt?
-          @use_tilt.nil? ? (@use_tilt ||= !!defined?(Tilt)) : @use_tilt && defined?(Tilt)
+          @use_tilt != false && !!defined?(Tilt) && Tilt.respond_to?(:[])
         end
 
         def use_tilt(bool = true)

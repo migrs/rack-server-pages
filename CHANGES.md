@@ -7,6 +7,9 @@ CHANGES
 
   * Feature
 
+  * Bugfix
+    - Detect the loaded Tilt template API rather than an incomplete namespace created by another dependency.
+
   * Misc
     - Enable line and branch coverage with SimpleCov and publish coverage to Coveralls from CI.
     - Refresh the README, move its backlog into GitHub issues, and document rendering a template with `halt`.

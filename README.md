@@ -285,6 +285,8 @@ Place the call inside your existing validation or authorization check. `partial`
 ## Tilt support
 [Tilt](https://github.com/rtomayko/tilt) is a generic interface to multiple Ruby template engines. To use it, add Tilt and the desired engines to your dependencies, then explicitly require them:
 
+Tilt is selected only when its template lookup API is available. A `Tilt` namespace created by another dependency does not enable it or force it to load. Loading Tilt later enables it for subsequent requests unless you have explicitly disabled it with `Rack::ServerPages::Template.use_tilt(false)`.
+
 ```ruby
 require 'rack-server-pages'
 require 'tilt'
