@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = 'Rack middleware and appilcation for serving dynamic pages.'
   s.description = 'Rack middleware and appilcation for serving dynamic pages in very simple way, without controllers or models, only views similar to ASP, JSP and PHP.'
 
-  s.files = Dir['lib/**/*', 'CHANGES.md', 'README.md', 'LICENSE.md', 'rack-server-pages.gemspec']
+  s.files = Dir['lib/**/*', 'CHANGES.md', 'README.md', 'UPGRADING.md', 'LICENSE.md', 'rack-server-pages.gemspec']
 
   s.require_paths = ['lib']
 

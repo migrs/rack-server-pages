@@ -1,11 +1,12 @@
 CHANGES
 =======
 
-### [v0.2.2](https://github.com/migrs/rack-server-pages/releases/tag/v0.2.2) / Next
+### [v0.3.0](https://github.com/migrs/rack-server-pages/releases/tag/v0.3.0) / Next
 
-  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.1...v0.2.2)
+  * [Changes](https://github.com/migrs/rack-server-pages/compare/v0.2.1...v0.3.0)
 
   * Feature
+    - Add content-versioned asset URLs, `static_etags` and `static_timestamps` (both enabled by default), and configurable static cache headers. See [UPGRADING](UPGRADING.md) for caching changes.
 
   * Bugfix
     - Detect the loaded Tilt template API rather than an incomplete namespace created by another dependency.
