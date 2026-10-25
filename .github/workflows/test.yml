@@ -47,3 +47,9 @@ jobs:
           ruby --version
           bundle exec ruby -e 'require "rack"; puts "Rack #{Rack.release}"'
       - run: bundle exec rake spec
+      - name: Upload coverage to Coveralls
+        if: matrix.ruby-version == '4.0' && matrix.rack-version == '~> 3'
+        uses: coverallsapp/github-action@v2
+        with:
+          file: coverage/.resultset.json
+          format: simplecov

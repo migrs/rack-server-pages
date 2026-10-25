@@ -1,12 +1,16 @@
 # -*- encoding: utf-8 -*-
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/'
+  track_files 'lib/**/*.rb'
+  enable_coverage :branch
+end
+
 require 'rack/test'
 require 'rspec/its'
 require 'tapp'
-require 'simplecov'
 require 'rack-server-pages'
 require 'capybara/rspec'
-
-# SimpleCov.start
 
 RSpec.configure do |conf|
   conf.include Rack::Test::Methods
